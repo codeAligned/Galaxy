@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{3039E576-742D-42F7-A910-BD4C77E2EEA5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Galaxy.PricingService</RootNamespace>
+    <AssemblyName>Galaxy.PricingService</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ExcelDna.Integration, Version=0.33.5730.40390, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ExcelDna.Integration.0.33.9\lib\ExcelDna.Integration.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BookPosition.cs" />
+    <Compile Include="CustomUserVariable.cs" />
+    <Compile Include="Derivatives.cs" />
+    <Compile Include="Email.cs" />
+    <Compile Include="fittageVol.cs" />
+    <Compile Include="FunctionModel.cs" />
+    <Compile Include="GSVI.cs" />
+    <Compile Include="InstrumentPosition.cs" />
+    <Compile Include="LevenbergMarquardt.cs" />
+    <Compile Include="LmAlgo.cs" />
+    <Compile Include="LmConfig.cs" />
+    <Compile Include="LmDelimitedArray.cs" />
+    <Compile Include="LmParams.cs" />
+    <Compile Include="LmResult.cs" />
+    <Compile Include="LUDecompositionResults.cs" />
+    <Compile Include="Matrix.cs" />
+    <Compile Include="MaturityData.cs" />
+    <Compile Include="Option.cs" />
+    <Compile Include="OptionLib.cs" />
+    <Compile Include="OptionLib%28backup%29.cs" />
+    <Compile Include="Parameter.cs" />
+    <Compile Include="Pnl.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SVI.cs" />
+    <Compile Include="SVIadjusted.cs" />
+    <Compile Include="WingModel.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Galaxy.PricingService-AddIn.dna">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Galaxy.DatabaseService\Galaxy.DatabaseService.csproj">
+      <Project>{7aff0323-9956-45fa-8c18-9f6e8d10a677}</Project>
+      <Name>Galaxy.DatabaseService</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy "$(SolutionDir)\packages\ExcelDna.AddIn.0.33.9\tools\ExcelDna.xll" "$(TargetDir)Galaxy.PricingService-AddIn.xll*" /C /Y
+xcopy "$(TargetDir)Galaxy.PricingService-AddIn.dna*" "$(TargetDir)Galaxy.PricingService-AddIn64.dna*" /C /Y
+xcopy "$(SolutionDir)\packages\ExcelDna.AddIn.0.33.9\tools\ExcelDna64.xll" "$(TargetDir)Galaxy.PricingService-AddIn64.xll*" /C /Y
+"$(SolutionDir)\packages\ExcelDna.AddIn.0.33.9\tools\ExcelDnaPack.exe" "$(TargetDir)Galaxy.PricingService-AddIn.dna" /Y
+"$(SolutionDir)\packages\ExcelDna.AddIn.0.33.9\tools\ExcelDnaPack.exe" "$(TargetDir)Galaxy.PricingService-AddIn64.dna" /Y</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,119 @@
+﻿<dxr:DXRibbonWindow
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:dxr="http://schemas.devexpress.com/winfx/2008/xaml/ribbon"
+    xmlns:dxb="http://schemas.devexpress.com/winfx/2008/xaml/bars"
+    xmlns:dxd="http://schemas.devexpress.com/winfx/2008/xaml/docking"
+    xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+    xmlns:dxc="http://schemas.devexpress.com/winfx/2008/xaml/charts"
+    xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+    xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol" 
+    x:Class="Galaxy.VolManager.VolManagerWin"
+    Title="Volatility Manager" Height="600" Width="1200"
+    SnapsToDevicePixels="True" UseLayoutRounding="True">
+
+    <dxmvvm:Interaction.Behaviors>
+        <dxmvvm:EventToCommand EventName="Closing" Command="{Binding BeforeCloseCmd}"/>
+        <dxmvvm:EventToCommand EventName="Loaded" Command="{Binding WindowsLoadedCmd}"/>
+    </dxmvvm:Interaction.Behaviors>
+
+    <DockPanel>
+        <dxb:MainMenuControl Caption="MainMenu" DockPanel.Dock="Top">
+            <dxb:BarSubItem x:Name="Vol" CategoryName="BuiltIn" Content="Volatility">
+                <dxb:BarButtonItem x:Name="bLoadData" CategoryName="Help" Content="Load Implied Volatility" />
+            </dxb:BarSubItem>
+        </dxb:MainMenuControl>
+
+        <dxd:DockLayoutManager x:Name="dockLayoutManager">
+            <dxd:LayoutGroup Orientation="Vertical">
+                <dxd:LayoutGroup ItemHeight="1*" >
+                    <dxd:LayoutPanel Caption="DetailView" ItemWidth="1*" AllowClose="False" >
+                        <dxlc:LayoutGroup Orientation="Vertical" Margin="10,0,10,0">
+
+                            <dxlc:LayoutItem Label="Product:">
+                                <dxe:ComboBoxEdit Text="{Binding SelectedProduct}" Width="140" HorizontalAlignment="Right">
+                                    <dxe:ComboBoxEditItem Content="OESX" />
+                                </dxe:ComboBoxEdit>
+                            </dxlc:LayoutItem>
+
+                            <dxlc:LayoutItem Label="Maturity:">
+                                <dxe:ComboBoxEdit Text="{Binding SelectedMaturity}" DisplayFormatString="dd/MM/yyyy" 
+                                                  SelectedItem="{Binding SelectedMaturity}" 
+                                                  ItemsSource="{Binding AvailableMaturity}"
+                                                  NullText="Option Maturity" Width="140" HorizontalAlignment="Right"/>
+                            </dxlc:LayoutItem>
+
+                            <dxlc:LayoutGroup>
+                                <dxlc:LayoutItem Label="Min Strike:">
+                                    <dxe:TextEdit Width="80" Text="{Binding SelectedMinStrike}"  />
+                                </dxlc:LayoutItem>
+                                <dxlc:LayoutItem Label="Max Strike:" HorizontalAlignment="Right">
+                                    <dxe:TextEdit Width="80" Text="{Binding SelectedMaxStrike}"/>
+                                </dxlc:LayoutItem>
+                            </dxlc:LayoutGroup>
+                            <dxlc:LayoutItem >
+                                <Button Margin="40,5,40,0" Content="Load data" Command="{Binding Path=LoadVolCmd}"/>
+                            </dxlc:LayoutItem>
+                        </dxlc:LayoutGroup>
+                    </dxd:LayoutPanel>
+
+                    <dxd:LayoutPanel Caption="Vol Parameter" ItemWidth="3*" AllowClose="False">
+
+                        <dxlc:LayoutGroup Orientation="Vertical">
+                            <dxlc:LayoutGroup >
+                                <dxlc:LayoutGroup Orientation="Vertical" Margin="10,0,10,0">
+                                    <dxlc:LayoutItem Label="a (DB):" >
+                                        <dxe:TextEdit  Text="{Binding Param.A}" Width="80" HorizontalAlignment="Right"/>
+                                    </dxlc:LayoutItem>
+                                </dxlc:LayoutGroup>
+                                <dxlc:LayoutGroup Orientation="Vertical" Margin="10,0,10,0">
+                                    <dxlc:LayoutItem Label="b (DB):" >
+                                        <dxe:TextEdit Text="{Binding Param.B}" Width="80" HorizontalAlignment="Right"/>
+                                    </dxlc:LayoutItem>
+                                </dxlc:LayoutGroup>
+                                <dxlc:LayoutGroup Orientation="Vertical" Margin="10,0,10,0">
+                                    <dxlc:LayoutItem Label="sigma (DB):" >
+                                        <dxe:TextEdit Text="{Binding Param.Sigma}" Width="80" HorizontalAlignment="Right" />
+                                    </dxlc:LayoutItem>
+                                </dxlc:LayoutGroup>
+                                <dxlc:LayoutGroup Orientation="Vertical" Margin="10,0,10,0">
+                                    <dxlc:LayoutItem Label="rho (DB):" >
+                                        <dxe:TextEdit Text="{Binding Param.Rho}" Width="80" HorizontalAlignment="Right"/>
+                                    </dxlc:LayoutItem>
+                                </dxlc:LayoutGroup>
+                                <dxlc:LayoutGroup Orientation="Vertical" Margin="10,0,10,0">
+                                    <dxlc:LayoutItem Label="m (DB):" >
+                                        <dxe:TextEdit Text="{Binding Param.M}" Width="80" HorizontalAlignment="Right"/>
+                                    </dxlc:LayoutItem>
+
+                                </dxlc:LayoutGroup>
+                            </dxlc:LayoutGroup>
+                            
+                            <dxlc:LayoutGroup>
+                                <dxlc:LayoutItem >
+                                    <Button Margin="120,10,120,10" Content="Fit Curve" Command="{Binding Path=FitCurveCmd}"/>
+                                </dxlc:LayoutItem>
+                                <dxlc:LayoutItem >
+                                    <Button Margin="120,10,120,10" Content="Insert New Params" Command="{Binding Path=InsertNewParamsCmd}" />
+                                </dxlc:LayoutItem>
+                            </dxlc:LayoutGroup>
+                        </dxlc:LayoutGroup>
+                    </dxd:LayoutPanel>
+                </dxd:LayoutGroup>
+                <dxd:LayoutPanel Caption="DetailView" ItemHeight="2*" AllowClose="False">
+                    <Grid>
+                        <dxc:ChartControl >
+                            <dxc:ChartControl.Palette>
+                                <dxc:DXChartsPalette/>
+                            </dxc:ChartControl.Palette>
+                            <dxc:XYDiagram2D>
+                                <dxc:LineStackedSeries2D ArgumentDataMember="X" ValueDataMember="Y" DataSource="{Binding Path=ModelVolPoints}"/>
+                                <dxc:PointSeries2D ArgumentDataMember="X" ValueDataMember="Y" DataSource="{Binding Path=ImpliedVolPoints}"/>
+                            </dxc:XYDiagram2D>
+                        </dxc:ChartControl>
+                    </Grid>
+                </dxd:LayoutPanel>
+            </dxd:LayoutGroup>
+        </dxd:DockLayoutManager>
+    </DockPanel>
+</dxr:DXRibbonWindow>

@@ -1,0 +1,31 @@
+Computeur configuration
+	- Format United Kingdom
+
+Set Up VPN Database
+	-adresse: 62.210.226.7
+	-destination: VPN Server
+
+	-user: vpn01
+	-pwd: Phy14!
+
+	C:\Windows\System32\drivers\etc
+	add: 172.16.7.119	PHY0701
+
+TT API Sofware requiered:
+	- TT API
+	- XTrader
+	- TT SIM
+	
+
+Set Up Guardian:
+	 Mode -> Production
+	 Config -> Deamon Setup -> Remote Proxy Deamon:
+	 - IP Adress(1) 208.50.24.70
+	 - IP Adress(2) 208.50.27.70
+	 Port: 10200
+	 Enable Compression: True
+
+Check price feed by logon Xtrader
+
+	 
+			
