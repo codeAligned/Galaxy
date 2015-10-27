@@ -27,5 +27,6 @@ Set Up Guardian:
 
 Check price feed by logon Xtrader
 
+test
 	 
 			
