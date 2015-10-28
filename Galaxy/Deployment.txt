@@ -26,7 +26,5 @@ Set Up Guardian:
 	 Enable Compression: True
 
 Check price feed by logon Xtrader
-
-test
 	 
 			
