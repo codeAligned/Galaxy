@@ -10,6 +10,7 @@ namespace Galaxy.PricingService
 {
     public static class Option
     {
+        public static PricingLib.Derivatives _derivatives;
         private const double _timeBasis = 365;
         private const int _strikeBase = 50;
 
@@ -26,24 +27,24 @@ namespace Galaxy.PricingService
         }
 
         [ExcelFunction(Name = "GREEK.DELTA.CALL", Description = "Delta for call option")]
-        public static double CallDelta(double spot, double strike, double volatility, double time, 
-                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0, 
+        public static double CallDelta(double spot, double strike, double volatility, double time,
+                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0,
                                             [ExcelArgument(Description = "Optional")] double dividend = 0)
         {
             return Exp(-dividend * time) * CumulativeNormalDistribution(D1(spot, strike, time, volatility, riskFreeRate, dividend));
         }
 
         [ExcelFunction(Name = "GREEK.DELTA.PUT", Description = "Delta for put option")]
-        public static double PutDelta(double spot, double strike, double volatility, double time, 
-                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0, 
+        public static double PutDelta(double spot, double strike, double volatility, double time,
+                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0,
                                             [ExcelArgument(Description = "Optional")] double dividend = 0)
         {
             return -Exp(-dividend * time) * CumulativeNormalDistribution(-D1(spot, strike, volatility, time, riskFreeRate, dividend));
         }
 
         [ExcelFunction(Name = "GREEK.DELTA", Description = "Delta for option")]
-        public static double Delta(string optionType, double spot, double strike, double volatility, double time, 
-                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0, 
+        public static double Delta(string optionType, double spot, double strike, double volatility, double time,
+                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0,
                                             [ExcelArgument(Description = "Optional")] double dividend = 0)
         {
             if (optionType == "CALL")
@@ -60,9 +61,29 @@ namespace Galaxy.PricingService
             throw e;
         }
 
+        [ExcelFunction(Name = "GREEK.DELTASMILE", Description = "Delta for option")]
+        public static double DeltaSmile(string optionType, double spot, double strike, double volatility, double time, double[] pointsVol,
+                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0,
+                                            [ExcelArgument(Description = "Optional")] double dividend = 0)
+        {
+            _derivatives = new PricingLib.Derivatives(pointsVol.GetLength(0));
+            if (optionType == "CALL")
+            {
+                return CallDelta(spot, strike, volatility, time, riskFreeRate, dividend) + Vega(spot, strike, volatility, time, riskFreeRate, dividend) * _derivatives.ComputeDerivative(pointsVol, 1, 0, 25);
+            }
+            if (optionType == "PUT")
+            {
+                return PutDelta(spot, strike, volatility, time, riskFreeRate, dividend) + Vega(spot, strike, volatility, time, riskFreeRate, dividend) * _derivatives.ComputeDerivative(pointsVol, 1, 0, 25);
+            }
+
+            Exception e = new Exception("Wrong optionType valide type: PUT,CALL");
+            _logger.Error(e);
+            throw e;
+        }
+
         [ExcelFunction(Name = "GREEK.THETA.CALL", Description = "Theta for call option")]
-        public static double CallTheta(double spot, double strike, double volatility, double time, 
-                                            [ExcelArgument(Description = "Optional")] double rate = 0, 
+        public static double CallTheta(double spot, double strike, double volatility, double time,
+                                            [ExcelArgument(Description = "Optional")] double rate = 0,
                                             [ExcelArgument(Description = "Optional")] double dividend = 0)
         {
             double res = -(spot * ProbabilityDensity(D1(spot, strike, time, volatility, rate, dividend)) * volatility * Exp(-dividend * time)) / (2 * Sqrt(time)) + dividend * spot * CumulativeNormalDistribution(D1(spot, strike, time, volatility, rate, dividend)) * Exp(-dividend * time) - rate * strike * Exp(-rate * time) * CumulativeNormalDistribution(D2(spot, strike, time, volatility, rate, dividend));
@@ -70,8 +91,8 @@ namespace Galaxy.PricingService
         }
 
         [ExcelFunction(Name = "GREEK.THETA.PUT", Description = "Theta for put option")]
-        public static double PutTheta(double spot, double strike, double volatility, double time, 
-                                            [ExcelArgument(Description = "Optional")] double rate = 0, 
+        public static double PutTheta(double spot, double strike, double volatility, double time,
+                                            [ExcelArgument(Description = "Optional")] double rate = 0,
                                             [ExcelArgument(Description = "Optional")]double dividend = 0)
         {
             double res = -(spot * ProbabilityDensity(D1(spot, strike, time, volatility, rate, dividend)) * volatility * Exp(-dividend * time)) / (2 * Sqrt(time)) - dividend * spot * CumulativeNormalDistribution(-D1(spot, strike, time, volatility, rate, dividend)) * Exp(-dividend * time) + rate * strike * Exp(-rate * time) * CumulativeNormalDistribution(-D2(spot, strike, time, volatility, rate, dividend));
@@ -79,8 +100,8 @@ namespace Galaxy.PricingService
         }
 
         [ExcelFunction(Name = "GREEK.THETA", Description = "Theta for option")]
-        public static double Theta(string optionType, double spot, double strike, double volatility, double time, 
-                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0, 
+        public static double Theta(string optionType, double spot, double strike, double volatility, double time,
+                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0,
                                             [ExcelArgument(Description = "Optional")] double dividend = 0)
         {
             if (optionType == "CALL")
@@ -98,16 +119,16 @@ namespace Galaxy.PricingService
         }
 
         [ExcelFunction(Name = "GREEK.GAMMA", Description = "Gamma for option")]
-        public static double Gamma(double spot, double strike, double volatility, double time, 
-                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0, 
+        public static double Gamma(double spot, double strike, double volatility, double time,
+                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0,
                                             [ExcelArgument(Description = "Optional")] double dividend = 0)
         {
-           return (ProbabilityDensity(D1(spot, strike, time, volatility, riskFreeRate, dividend)) * Exp(-dividend * time)) / (spot * volatility * Sqrt(time));
+            return (ProbabilityDensity(D1(spot, strike, time, volatility, riskFreeRate, dividend)) * Exp(-dividend * time)) / (spot * volatility * Sqrt(time));
         }
 
         [ExcelFunction(Name = "GREEK.VEGA", Description = "Vega for option")]
-        public static double Vega(double spot, double strike, double volatility, double time, 
-                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0, 
+        public static double Vega(double spot, double strike, double volatility, double time,
+                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0,
                                             [ExcelArgument(Description = "Optional")] double dividend = 0)
         {
             double res = spot * Sqrt(time) * ProbabilityDensity(D1(spot, strike, time, volatility, riskFreeRate, dividend)) * Exp(-dividend * time);
@@ -115,8 +136,8 @@ namespace Galaxy.PricingService
         }
 
         [ExcelFunction(Name = "GREEK.VETA", Description = "Veta for option")]
-        public static double Veta(double spot, double strike, double volatility, double time, 
-                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0, 
+        public static double Veta(double spot, double strike, double volatility, double time,
+                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0,
                                             [ExcelArgument(Description = "Optional")] double dividend = 0)
         {
             return Vega(spot, strike, volatility, time, riskFreeRate, dividend) * (dividend + (riskFreeRate - dividend) * D1(spot, strike, time, volatility, riskFreeRate, dividend) / volatility / Sqrt(time) - (1 + D1(spot, strike, time, volatility, riskFreeRate, dividend) * D2(spot, strike, time, volatility, riskFreeRate, dividend)) / 2 / time);
@@ -131,8 +152,8 @@ namespace Galaxy.PricingService
         }
 
         [ExcelFunction(Name = "GREEK.RHO.CALL", Description = "Rho for Call option")]
-        public static double CallRho(double spot, double strike, double volatility, double time, 
-                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0, 
+        public static double CallRho(double spot, double strike, double volatility, double time,
+                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0,
                                             [ExcelArgument(Description = "Optional")] double dividend = 0)
         {
             double res = strike * time * Exp(-riskFreeRate * time) * CumulativeNormalDistribution(D2(spot, strike, time, volatility, riskFreeRate, dividend));
@@ -140,8 +161,8 @@ namespace Galaxy.PricingService
         }
 
         [ExcelFunction(Name = "GREEK.RHO.PUT", Description = "Rho for put option")]
-        public static double PutRho(double spot, double strike, double volatility, double time, 
-                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0, 
+        public static double PutRho(double spot, double strike, double volatility, double time,
+                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0,
                                             [ExcelArgument(Description = "Optional")] double dividend = 0)
         {
             double res = -strike * time * Exp(-riskFreeRate * time) * CumulativeNormalDistribution(-D2(spot, strike, time, volatility, riskFreeRate, dividend));
@@ -149,7 +170,7 @@ namespace Galaxy.PricingService
         }
 
         [ExcelFunction(Name = "GREEK.RHO", Description = "Rho for option")]
-        public static double Rho(string optionType, double spot, double strike, double volatility, double time, 
+        public static double Rho(string optionType, double spot, double strike, double volatility, double time,
                                             [ExcelArgument(Description = "Optional")] double riskFreeRate = 0,
                                             [ExcelArgument(Description = "Optional")] double dividend = 0)
         {
@@ -168,32 +189,32 @@ namespace Galaxy.PricingService
         }
 
         [ExcelFunction(Name = "GREEK.VANNA", Description = "Vanna for option")]
-        public static double Vanna(double spot, double strike, double volatility, double time, 
-                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0, 
+        public static double Vanna(double spot, double strike, double volatility, double time,
+                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0,
                                             [ExcelArgument(Description = "Optional")] double dividend = 0)
         {
             return -Exp(-dividend * time) * ProbabilityDensity(D1(spot, strike, time, volatility, riskFreeRate, dividend)) * D2(spot, strike, time, volatility, riskFreeRate, dividend) / volatility;
         }
 
         [ExcelFunction(Name = "GREEK.VOLGA", Description = "Volga for option")]
-        public static double Volga(double spot, double strike, double volatility, double time, 
-                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0, 
+        public static double Volga(double spot, double strike, double volatility, double time,
+                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0,
                                             [ExcelArgument(Description = "Optional")] double dividend = 0)
         {
             return -spot * Sqrt(time) * D1(spot, strike, time, volatility, riskFreeRate, dividend) * Vanna(spot, strike, volatility, time, riskFreeRate, dividend);
         }
 
         [ExcelFunction(Name = "GREEK.VOMMA", Description = "Vomma for option")]
-        public static double Vomma(double spot, double strike, double volatility, double time, 
-                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0, 
+        public static double Vomma(double spot, double strike, double volatility, double time,
+                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0,
                                             [ExcelArgument(Description = "Optional")] double dividend = 0)
         {
             return Volga(spot, strike, volatility, time, riskFreeRate, dividend);
         }
 
         [ExcelFunction(Name = "GREEK.CHARM", Description = "Charm for option")]
-        public static double Charm(string optionType, double spot, double strike, double volatility, double time, 
-                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0, 
+        public static double Charm(string optionType, double spot, double strike, double volatility, double time,
+                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0,
                                             [ExcelArgument(Description = "Optional")] double dividend = 0)
         {
             if (optionType == "CALL")
@@ -213,32 +234,32 @@ namespace Galaxy.PricingService
         }
 
         [ExcelFunction(Name = "GREEK.CHARM.CALL", Description = "charm for Call")]
-        public static double CharmCall(double spot, double strike, double volatility, double time, 
-                                            [ExcelArgument(Description = "Optional")]double rate = 0, 
+        public static double CharmCall(double spot, double strike, double volatility, double time,
+                                            [ExcelArgument(Description = "Optional")]double rate = 0,
                                             [ExcelArgument(Description = "Optional")] double dividend = 0)
         {
             return dividend * Exp(-dividend * time) * CumulativeNormalDistribution(D1(spot, strike, time, volatility, rate, dividend)) - Exp(-dividend * time) * ProbabilityDensity(D1(spot, strike, time, volatility, rate, dividend)) * (2 * (rate - dividend) * time - D2(spot, strike, time, volatility, rate, dividend) * volatility * Sqrt(time)) / (2 * time * volatility * Sqrt(time));
         }
 
         [ExcelFunction(Name = "GREEK.CHARM.PUT", Description = "charm for Put")]
-        public static double CharmPut(double spot, double strike, double volatility, double time, 
-                                            [ExcelArgument(Description = "Optional")] double rate = 0, 
+        public static double CharmPut(double spot, double strike, double volatility, double time,
+                                            [ExcelArgument(Description = "Optional")] double rate = 0,
                                             [ExcelArgument(Description = "Optional")]double dividend = 0)
         {
             return -dividend * Exp(-dividend * time) * CumulativeNormalDistribution(-D1(spot, strike, time, volatility, rate, dividend)) - Exp(-dividend * time) * ProbabilityDensity(D1(spot, strike, time, volatility, rate, dividend)) * (2 * (rate - dividend) * time - D2(spot, strike, time, volatility, rate, dividend) * volatility * Sqrt(time)) / (2 * time * volatility * Sqrt(time));
         }
 
         [ExcelFunction(Name = "GREEK.COLOR", Description = "color for option")]
-        public static double Color(double spot, double strike, double volatility, double time, 
-                                            [ExcelArgument(Description = "Optional")] double rate = 0, 
+        public static double Color(double spot, double strike, double volatility, double time,
+                                            [ExcelArgument(Description = "Optional")] double rate = 0,
                                             [ExcelArgument(Description = "Optional")]double dividend = 0)
         {
             return -Exp(-dividend * time) * ProbabilityDensity(D1(spot, strike, time, volatility, rate, dividend)) / (volatility * spot * Sqrt(time)) * (dividend + (rate - dividend) * D1(spot, strike, time, volatility, rate, dividend) / (volatility * Sqrt(time)) + (1 - D1(spot, strike, time, volatility, rate, dividend) * D2(spot, strike, time, volatility, rate, dividend)) / 2 / time);
         }
 
         [ExcelFunction(Name = "GREEK.ULTIMA", Description = "ultima for option")]
-        public static double Ultima(double spot, double strike, double volatility, double time, 
-                                            [ExcelArgument(Description = "Optional")] double rate = 0, 
+        public static double Ultima(double spot, double strike, double volatility, double time,
+                                            [ExcelArgument(Description = "Optional")] double rate = 0,
                                             [ExcelArgument(Description = "Optional")]double dividend = 0)
         {
             return -Exp(-dividend * time) * ProbabilityDensity(D1(spot, strike, time, volatility, rate, dividend)) * spot * Sqrt(time) * D2(spot, strike, time, volatility, rate, dividend) * D1(spot, strike, time, volatility, rate, dividend) / volatility / volatility * (D2(spot, strike, time, volatility, rate, dividend) * D1(spot, strike, time, volatility, rate, dividend) - D1(spot, strike, time, volatility, rate, dividend) / D2(spot, strike, time, volatility, rate, dividend) - D2(spot, strike, time, volatility, rate, dividend) / D1(spot, strike, time, volatility, rate, dividend) - 1);
@@ -251,7 +272,7 @@ namespace Galaxy.PricingService
         }
 
         [ExcelFunction(Name = "BLACKSCHOLES.CALL", Description = "BlackSholes Formula for Call")]
-        public static double BlackScholesCall(double spot, double strike, double time, double voltatility, 
+        public static double BlackScholesCall(double spot, double strike, double time, double voltatility,
                                             [ExcelArgument(Description = "Optional")] double rate = 0,
                                             [ExcelArgument(Description = "Optional")]double dividend = 0)
         {
@@ -260,14 +281,14 @@ namespace Galaxy.PricingService
 
         [ExcelFunction(Name = "BLACKSCHOLES.PUT", Description = "BlackSholes Formula for Put")]
         public static double BlackScholesPut(double spot, double strike, double time, double voltatility,
-                                            [ExcelArgument(Description = "Optional")] double rate = 0, 
+                                            [ExcelArgument(Description = "Optional")] double rate = 0,
                                             [ExcelArgument(Description = "Optional")]double dividend = 0)
         {
             return -spot * CumulativeNormalDistribution(-D1(spot, strike, time, voltatility, rate, dividend)) + strike * Exp(-rate * time) * CumulativeNormalDistribution(-D2(spot, strike, time, voltatility, rate, dividend));
         }
 
         [ExcelFunction(Name = "BLACKSCHOLES.OPTION", Description = "BlackSholes Formula")]
-        public static double BlackScholes(string optionType, double spot, double strike, double time, double voltatility, 
+        public static double BlackScholes(string optionType, double spot, double strike, double time, double voltatility,
                                             [ExcelArgument(Description = "Optional")] double rate = 0,
                                             [ExcelArgument(Description = "Optional")] double dividend = 0)
         {
@@ -279,7 +300,7 @@ namespace Galaxy.PricingService
             {
                 return BlackScholesPut(spot, strike, time, voltatility, rate, dividend);
             }
-          
+
             Exception e = new Exception("Wrong optionType valide type: PUT,CALL");
             _logger.Error(e);
             throw e;
@@ -328,9 +349,9 @@ namespace Galaxy.PricingService
 
 
         [ExcelFunction(Name = "BLACKSCHOLES.VOL", Description = " Return blackScholes implied volatility by bisection ")]
-        public static double BlackScholesVol( double optionPrice, double spotPrice,double strike, string optionType, double time, 
-                                                    [ExcelArgument(Description = "Optional")] double rate = 0, 
-                                                    [ExcelArgument(Description = "Optional")] double dividend = 0,  
+        public static double BlackScholesVol( double optionPrice, double spotPrice,double strike, string optionType, double time,
+                                                    [ExcelArgument(Description = "Optional")] double rate = 0,
+                                                    [ExcelArgument(Description = "Optional")] double dividend = 0,
                                                     [ExcelArgument(Description = "Optional")] double accuracy = 0.0001,
                                                     [ExcelArgument(Description = "Optional")] double maxVol = 1,
                                                     [ExcelArgument(Description = "Optional")] double minVol = 0)
@@ -348,9 +369,9 @@ namespace Galaxy.PricingService
 
             do
             {
-                mid = (maxVol + minVol)/2;
+                mid = (maxVol + minVol) / 2;
                 res = BlackScholes(optionType, spotPrice, strike, time, mid, rate, dividend);
-     
+
                 if (res > optionPrice)
                 {
                     maxVol = mid;
@@ -418,17 +439,17 @@ namespace Galaxy.PricingService
             {
                 case 1:
                 case 2:
-                case 3:{res = "03" ; break; }
+                case 3: { res = "03"; break; }
                 case 4:
                 case 5:
-                case 6:{res = "06" ; break; }
+                case 6: { res = "06"; break; }
                 case 7:
                 case 8:
-                case 9:{res = "09" ; break; }
+                case 9: { res = "09"; break; }
                 case 10:
                 case 11:
-                case 12:{res = "12" ;break; }
-                default:{res = "?"; break;}
+                case 12: { res = "12"; break; }
+                default: { res = "?"; break; }
             }
             int year = OptionMaturity.Year;
             return prefix + res + year;
@@ -508,9 +529,9 @@ namespace Galaxy.PricingService
         /// </summary>
         public static string ConvertTtCodeToId(string ttCode, string prefix)
         {
-            int month = int.Parse(ttCode.Substring(4, 2)) ;
+            int month = int.Parse(ttCode.Substring(4, 2));
             int year = int.Parse(ttCode.Substring(6, 4));
-            DateTime maturity = new DateTime(year,month,1);
+            DateTime maturity = new DateTime(year, month, 1);
 
             return BuildForwardId(prefix, maturity);
         }
@@ -536,7 +557,7 @@ namespace Galaxy.PricingService
         /// <summary>
         /// get corresponding forward price from future price
         /// </summary>
-        public static double GetForwardClose(string forwardId, DateTime maturity , double futureClose)
+        public static double GetForwardClose(string forwardId, DateTime maturity, double futureClose)
         {
             if (maturity < DateTime.Today)
             {
@@ -616,7 +637,7 @@ namespace Galaxy.PricingService
                 throw e;
             }
 
-            return - Log((highStrike * (lowCallPrice - lowPutPrice) - lowStrike * (highCallPrice - highPutPrice)) / (closeSpot * (highStrike - lowStrike))) / time;
+            return -Log((highStrike * (lowCallPrice - lowPutPrice) - lowStrike * (highCallPrice - highPutPrice)) / (closeSpot * (highStrike - lowStrike))) / time;
         }
 
         /// <summary>
@@ -624,7 +645,7 @@ namespace Galaxy.PricingService
         /// </summary>
         private static double GetImpliedRate(double dividend, double strike, double closeSpot, double callPrice, double putPrice, double time)
         {
-            return - Log((closeSpot * Exp(- dividend * time) - callPrice + putPrice) / strike) / time;
+            return -Log((closeSpot * Exp(-dividend * time) - callPrice + putPrice) / strike) / time;
         }
     }
 }
