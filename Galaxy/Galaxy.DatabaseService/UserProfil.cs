@@ -25,10 +25,12 @@ namespace Galaxy.DatabaseService
         public string LastName { get; set; }
         public string Job { get; set; }
         public string Email { get; set; }
-        public Nullable<bool> DailyReport { get; set; }
-        public Nullable<bool> WeeklyReport { get; set; }
+        public bool DailyReport { get; set; }
+        public bool WeeklyReport { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Deal> Deals { get; set; }
+        public virtual UserProfil UserProfil1 { get; set; }
+        public virtual UserProfil UserProfil2 { get; set; }
     }
 }

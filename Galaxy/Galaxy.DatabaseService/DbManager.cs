@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.Entity;
-using System.Data.Entity.Core.Common.CommandTrees;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using Galaxy.DatabaseService;
 using log4net;
 
 namespace Galaxy.DatabaseService
@@ -114,7 +112,6 @@ namespace Galaxy.DatabaseService
 
             log.Info($"Add New Vol product: {newVolparam.Product} price: {newVolparam.MaturityDate}");
         }
-    
 
         public void UpdateDeal(Deal updatedDeal)
         {
@@ -132,6 +129,8 @@ namespace Galaxy.DatabaseService
                 deal.Counterparty = updatedDeal.Counterparty;
                 deal.Comment = updatedDeal.Comment;
                 deal.Status = updatedDeal.Status;
+                deal.ForwardLevel = updatedDeal.ForwardLevel;
+                deal.VolatilityLevel = updatedDeal.VolatilityLevel;
                 db.SaveChanges();
             }
 
@@ -379,10 +378,6 @@ namespace Galaxy.DatabaseService
                 param.Sigma = updatedParam.Sigma;
                 param.Rho = updatedParam.Rho;
                 param.M = updatedParam.M;
-                param.Accuracy = updatedParam.Accuracy;
-                param.Guess = updatedParam.Guess;
-                param.LowerBound = updatedParam.LowerBound;
-                param.UpperBound = updatedParam.UpperBound;
                 db.SaveChanges();
             }
 
@@ -475,7 +470,7 @@ namespace Galaxy.DatabaseService
                     where
                         b.TradeDate.Value.Day == bookingDate.Day && b.TradeDate.Value.Month == bookingDate.Month &&
                         b.TradeDate.Value.Year == bookingDate.Year
-                    orderby b.TradeDate.Value ascending
+                    orderby b.TradeDate ascending
                     select b;
 
                 res = query.ToArray();

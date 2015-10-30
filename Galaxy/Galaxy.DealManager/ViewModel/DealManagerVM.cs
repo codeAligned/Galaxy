@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Configuration;
 using System.Linq;
 using System.Reflection;
@@ -23,7 +24,7 @@ using log4net;
 namespace Galaxy.DealManager.ViewModel
 {
     [POCOViewModel(ImplementIDataErrorInfo = true)]
-    public class DealManagerVM
+    public class DealManagerVM : INotifyPropertyChanged
     {
         #region Parameters
 
@@ -34,6 +35,8 @@ namespace Galaxy.DealManager.ViewModel
 
         private readonly IMarketFeed _marketFeed;
         private readonly IDbManager _dbManager;
+
+        public Deal _selectedDeal;
 
         private readonly Dictionary<string, ObsInstruPosition> _currentPosDico;
         private readonly Dictionary<string, ObsInstruPosition> _expiredPosDico;
@@ -75,7 +78,12 @@ namespace Galaxy.DealManager.ViewModel
         public ObservableCollection<ObsInstruPosition> ObsPositions { get; set; }
         public ObservableCollection<ObsBookPosition> ObsBookPosition { get; set; }
 
-        public Deal SelectedDeal { get; set; }
+        public Deal SelectedDeal
+        {
+            get { return _selectedDeal; }
+            set { _selectedDeal = value; OnPropertyChanged(nameof(SelectedDeal)); }
+        }
+
         public ObsInstruPosition SelectedObsInstruPosition { get; set; }
 
         public string ProductType
@@ -118,7 +126,7 @@ namespace Galaxy.DealManager.ViewModel
             _volParamDico = new Dictionary<string, VolParam>();
             _fwdBaseOffsetDico = new Dictionary<string, double>();
 
-        _instrumentPriceSafeDico = new ConcurrentDictionary<string, double>();
+            _instrumentPriceSafeDico = new ConcurrentDictionary<string, double>();
             RowDoubleClickCmd = new DelegateCommand<object>(DisplayUpdateRmFormWin);
             InstruViewClickCmd = new DelegateCommand<object>(DisplayDealView); 
         }
@@ -251,6 +259,7 @@ namespace Galaxy.DealManager.ViewModel
 
         public void DisplayUpdateRmFormWin(object obj)
         {
+            SelectedDeal = null;
             SelectedDeal = (Deal) obj;
 
             if(SelectedDeal == null)
@@ -258,7 +267,6 @@ namespace Galaxy.DealManager.ViewModel
 
             var query = from b in ObsPositions
                         select b.InstruRic;
-
 
             string[] instruList = query.ToArray();
 
@@ -284,11 +292,12 @@ namespace Galaxy.DealManager.ViewModel
 
             ObsDeals.Clear();
 
-            foreach (var obsDeal in _deals)
+            foreach (var deal in _deals)
             {
-                if (obsDeal?.InstrumentId == SelectedObsInstruPosition?.InstruRic)
+                if (deal?.InstrumentId == SelectedObsInstruPosition?.InstruRic)
                 {
-                    ObsDeals.Add(obsDeal);
+                   // ObsDeals.Add(new Deal(deal));
+                    ObsDeals.Add(deal);
                 }
             }
 
@@ -371,11 +380,12 @@ namespace Galaxy.DealManager.ViewModel
             ObsDeals.Clear();
             LoadCurrentDeals();
 
-            foreach (var obsDeal in _deals)
+            foreach (var deal in _deals)
             {
-                if (obsDeal?.InstrumentId == SelectedObsInstruPosition?.InstruRic)
+                if (deal?.InstrumentId == SelectedObsInstruPosition?.InstruRic)
                 {
-                    ObsDeals.Add(obsDeal);
+                    //ObsDeals.Add(new ObsDeal(deal));
+                    ObsDeals.Add(deal);
                 }
             }
         }
@@ -669,5 +679,14 @@ namespace Galaxy.DealManager.ViewModel
 
             log.Info("DealManager closed");
         }
+
+        #region INotifyPropertyChanged Members
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
     }
 }

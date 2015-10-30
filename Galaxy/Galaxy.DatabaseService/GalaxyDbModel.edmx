@@ -22,6 +22,8 @@
           <Property Name="Broker" Type="varchar" MaxLength="50" />
           <Property Name="Counterparty" Type="varchar" MaxLength="50" />
           <Property Name="Comment" Type="varchar" MaxLength="50" />
+          <Property Name="ForwardLevel" Type="varchar" MaxLength="50" />
+          <Property Name="VolatilityLevel" Type="varchar" MaxLength="50" />
         </EntityType>
         <EntityType Name="HistoricalPrice">
           <Key>
@@ -66,8 +68,8 @@
           <Property Name="LastName" Type="varchar" MaxLength="50" Nullable="false" />
           <Property Name="Job" Type="varchar" MaxLength="50" Nullable="false" />
           <Property Name="Email" Type="varchar" MaxLength="50" Nullable="false" />
-          <Property Name="DailyReport" Type="bit" />
-          <Property Name="WeeklyReport" Type="bit" />
+          <Property Name="DailyReport" Type="bit" Nullable="false" />
+          <Property Name="WeeklyReport" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="VolParam">
           <Key>
@@ -81,10 +83,6 @@
           <Property Name="Sigma" Type="float" Nullable="false" />
           <Property Name="Rho" Type="float" Nullable="false" />
           <Property Name="M" Type="float" Nullable="false" />
-          <Property Name="Accuracy" Type="float" Nullable="false" />
-          <Property Name="Guess" Type="float" Nullable="false" />
-          <Property Name="LowerBound" Type="float" Nullable="false" />
-          <Property Name="UpperBound" Type="float" Nullable="false" />
         </EntityType>
         <Association Name="FK_Deal_FK">
           <End Role="Instrument" Type="Self.Instrument" Multiplicity="1" />
@@ -95,18 +93,6 @@
             </Principal>
             <Dependent Role="Deal">
               <PropertyRef Name="InstrumentId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Deal_UserProfil">
-          <End Role="UserProfil" Type="Self.UserProfil" Multiplicity="1" />
-          <End Role="Deal" Type="Self.Deal" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="UserProfil">
-              <PropertyRef Name="UserId" />
-            </Principal>
-            <Dependent Role="Deal">
-              <PropertyRef Name="TraderId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -134,6 +120,18 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_UserProfils_UserProfils">
+          <End Role="UserProfil" Type="Self.UserProfil" Multiplicity="1" />
+          <End Role="UserProfil1" Type="Self.UserProfil" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="UserProfil">
+              <PropertyRef Name="UserId" />
+            </Principal>
+            <Dependent Role="UserProfil1">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_VolParam_FK">
           <End Role="Product" Type="Self.Product" Multiplicity="1" />
           <End Role="VolParam" Type="Self.VolParam" Multiplicity="*" />
@@ -157,10 +155,6 @@
             <End Role="Instrument" EntitySet="Instrument" />
             <End Role="Deal" EntitySet="Deal" />
           </AssociationSet>
-          <AssociationSet Name="FK_Deal_UserProfil" Association="Self.FK_Deal_UserProfil">
-            <End Role="UserProfil" EntitySet="UserProfil" />
-            <End Role="Deal" EntitySet="Deal" />
-          </AssociationSet>
           <AssociationSet Name="FK_HistoricalPrice_FK" Association="Self.FK_HistoricalPrice_FK">
             <End Role="Instrument" EntitySet="Instrument" />
             <End Role="HistoricalPrice" EntitySet="HistoricalPrice" />
@@ -168,6 +162,10 @@
           <AssociationSet Name="FK_ProductId_FK" Association="Self.FK_ProductId_FK">
             <End Role="Product" EntitySet="Product" />
             <End Role="Instrument" EntitySet="Instrument" />
+          </AssociationSet>
+          <AssociationSet Name="FK_UserProfils_UserProfils" Association="Self.FK_UserProfils_UserProfils">
+            <End Role="UserProfil" EntitySet="UserProfil" />
+            <End Role="UserProfil1" EntitySet="UserProfil" />
           </AssociationSet>
           <AssociationSet Name="FK_VolParam_FK" Association="Self.FK_VolParam_FK">
             <End Role="Product" EntitySet="Product" />
@@ -216,25 +214,7 @@
           <Property Name="ProductType" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
           <Property Name="ExerciseType" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="Instruments" Relationship="Self.ProductId_FK" FromRole="Product" ToRole="Instrument" />
-          <NavigationProperty Name="VolParams" Relationship="Self.VolParam_FK" FromRole="Product" ToRole="VolParam" />
-        </EntityType>
-        <EntityType Name="VolParam">
-          <Key>
-            <PropertyRef Name="ProductId" />
-            <PropertyRef Name="MaturityDate" />
-          </Key>
-          <Property Name="ProductId" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
-          <Property Name="MaturityDate" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="A" Type="Double" Nullable="false" />
-          <Property Name="B" Type="Double" Nullable="false" />
-          <Property Name="Sigma" Type="Double" Nullable="false" />
-          <Property Name="Rho" Type="Double" Nullable="false" />
-          <Property Name="M" Type="Double" Nullable="false" />
-          <Property Name="Accuracy" Type="Double" Nullable="false" />
-          <Property Name="Guess" Type="Double" Nullable="false" />
-          <Property Name="LowerBound" Type="Double" Nullable="false" />
-          <Property Name="UpperBound" Type="Double" Nullable="false" />
-          <NavigationProperty Name="Product" Relationship="Self.VolParam_FK" FromRole="VolParam" ToRole="Product" />
+          <NavigationProperty Name="VolParams" Relationship="DevDbModel.FK_VolParam_FK" FromRole="Product" ToRole="VolParam" />
         </EntityType>
         <Association Name="HistoricalPrice_FK">
           <End Role="Instrument" Type="Self.Instrument" Multiplicity="1" />
@@ -260,23 +240,10 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="VolParam_FK">
-          <End Role="Product" Type="Self.Product" Multiplicity="1" />
-          <End Role="VolParam" Type="Self.VolParam" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Product">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="VolParam">
-              <PropertyRef Name="ProductId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityContainer Name="DevDbContext" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="HistoricalPrice" EntityType="Self.HistoricalPrice" />
           <EntitySet Name="Instrument" EntityType="Self.Instrument" />
           <EntitySet Name="Product" EntityType="Self.Product" />
-          <EntitySet Name="VolParam" EntityType="Self.VolParam" />
           <AssociationSet Name="HistoricalPrice_FK" Association="Self.HistoricalPrice_FK">
             <End Role="Instrument" EntitySet="Instrument" />
             <End Role="HistoricalPrice" EntitySet="HistoricalPrice" />
@@ -284,10 +251,6 @@
           <AssociationSet Name="ProductId_FK" Association="Self.ProductId_FK">
             <End Role="Product" EntitySet="Product" />
             <End Role="Instrument" EntitySet="Instrument" />
-          </AssociationSet>
-          <AssociationSet Name="VolParam_FK" Association="Self.VolParam_FK">
-            <End Role="Product" EntitySet="Product" />
-            <End Role="VolParam" EntitySet="VolParam" />
           </AssociationSet>
           <EntitySet Name="Deal" EntityType="DevDbModel.Deal" />
           <AssociationSet Name="FK_Deal_FK" Association="DevDbModel.FK_Deal_FK">
@@ -298,6 +261,15 @@
           <AssociationSet Name="FK_Deal_UserProfil" Association="DevDbModel.FK_Deal_UserProfil">
             <End Role="UserProfil" EntitySet="UserProfil" />
             <End Role="Deal" EntitySet="Deal" />
+          </AssociationSet>
+          <AssociationSet Name="FK_UserProfils_UserProfils" Association="DevDbModel.FK_UserProfils_UserProfils">
+            <End Role="UserProfil" EntitySet="UserProfil" />
+            <End Role="UserProfil1" EntitySet="UserProfil" />
+          </AssociationSet>
+          <EntitySet Name="VolParam" EntityType="DevDbModel.VolParam" />
+          <AssociationSet Name="FK_VolParam_FK" Association="DevDbModel.FK_VolParam_FK">
+            <End Role="Product" EntitySet="Product" />
+            <End Role="VolParam" EntitySet="VolParam" />
           </AssociationSet>
         </EntityContainer>
         <EntityType Name="Deal">
@@ -319,6 +291,8 @@
           <Property Name="Comment" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="Instrument" Relationship="DevDbModel.FK_Deal_FK" FromRole="Deal" ToRole="Instrument" />
           <NavigationProperty Name="UserProfil" Relationship="DevDbModel.FK_Deal_UserProfil" FromRole="Deal" ToRole="UserProfil" />
+          <Property Name="ForwardLevel" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="VolatilityLevel" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
         </EntityType>
         <Association Name="FK_Deal_FK">
           <End Type="DevDbModel.Instrument" Role="Instrument" Multiplicity="1" />
@@ -342,8 +316,10 @@
           <Property Name="Job" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="Deals" Relationship="DevDbModel.FK_Deal_UserProfil" FromRole="UserProfil" ToRole="Deal" />
           <Property Name="Email" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="DailyReport" Type="Boolean" />
-          <Property Name="WeeklyReport" Type="Boolean" />
+          <Property Name="DailyReport" Type="Boolean" Nullable="false" />
+          <Property Name="WeeklyReport" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="UserProfil1" Relationship="DevDbModel.FK_UserProfils_UserProfils" FromRole="UserProfil" ToRole="UserProfil1" />
+          <NavigationProperty Name="UserProfil2" Relationship="DevDbModel.FK_UserProfils_UserProfils" FromRole="UserProfil1" ToRole="UserProfil" />
         </EntityType>
         <Association Name="FK_Deal_UserProfil">
           <End Type="DevDbModel.UserProfil" Role="UserProfil" Multiplicity="1" />
@@ -354,6 +330,44 @@
             </Principal>
             <Dependent Role="Deal">
               <PropertyRef Name="TraderId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_UserProfils_UserProfils">
+          <End Type="DevDbModel.UserProfil" Role="UserProfil" Multiplicity="1" />
+          <End Type="DevDbModel.UserProfil" Role="UserProfil1" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="UserProfil">
+              <PropertyRef Name="UserId" />
+            </Principal>
+            <Dependent Role="UserProfil1">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="VolParam">
+          <Key>
+            <PropertyRef Name="ProductId" />
+            <PropertyRef Name="MaturityDate" />
+          </Key>
+          <Property Name="ProductId" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="MaturityDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="A" Type="Double" Nullable="false" />
+          <Property Name="B" Type="Double" Nullable="false" />
+          <Property Name="Sigma" Type="Double" Nullable="false" />
+          <Property Name="Rho" Type="Double" Nullable="false" />
+          <Property Name="M" Type="Double" Nullable="false" />
+          <NavigationProperty Name="Product" Relationship="DevDbModel.FK_VolParam_FK" FromRole="VolParam" ToRole="Product" />
+        </EntityType>
+        <Association Name="FK_VolParam_FK">
+          <End Type="DevDbModel.Product" Role="Product" Multiplicity="1" />
+          <End Type="DevDbModel.VolParam" Role="VolParam" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Product">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="VolParam">
+              <PropertyRef Name="ProductId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -399,27 +413,12 @@
         </MappingFragment>
       </EntityTypeMapping>
     </EntitySetMapping>
-    <EntitySetMapping Name="VolParam">
-      <EntityTypeMapping TypeName="IsTypeOf(DevDbModel.VolParam)">
-        <MappingFragment StoreEntitySet="VolParam">
-          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
-          <ScalarProperty Name="MaturityDate" ColumnName="MaturityDate" />
-          <ScalarProperty Name="A" ColumnName="A" />
-          <ScalarProperty Name="B" ColumnName="B" />
-          <ScalarProperty Name="Sigma" ColumnName="Sigma" />
-          <ScalarProperty Name="Rho" ColumnName="Rho" />
-          <ScalarProperty Name="M" ColumnName="M" />
-          <ScalarProperty Name="Accuracy" ColumnName="Accuracy" />
-          <ScalarProperty Name="Guess" ColumnName="Guess" />
-          <ScalarProperty Name="LowerBound" ColumnName="LowerBound" />
-          <ScalarProperty Name="UpperBound" ColumnName="UpperBound" />
-        </MappingFragment>
-      </EntityTypeMapping>
-    </EntitySetMapping>
     <EntitySetMapping Name="Deal">
       <EntityTypeMapping TypeName="IsTypeOf(DevDbModel.Deal)">
         <MappingFragment StoreEntitySet="Deal">
-          <ScalarProperty Name="DealId" ColumnName="DealId" />
+          <ScalarProperty Name="VolatilityLevel" ColumnName="VolatilityLevel" />
+                <ScalarProperty Name="ForwardLevel" ColumnName="ForwardLevel" />
+                <ScalarProperty Name="DealId" ColumnName="DealId" />
           <ScalarProperty Name="TraderId" ColumnName="TraderId" />
           <ScalarProperty Name="Quantity" ColumnName="Quantity" />
           <ScalarProperty Name="ExecPrice" ColumnName="ExecPrice" />
@@ -445,6 +444,19 @@
                 <ScalarProperty Name="LastName" ColumnName="LastName" />
                 <ScalarProperty Name="FirstName" ColumnName="FirstName" />
                 <ScalarProperty Name="UserId" ColumnName="UserId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="VolParam">
+            <EntityTypeMapping TypeName="DevDbModel.VolParam">
+              <MappingFragment StoreEntitySet="VolParam">
+                <ScalarProperty Name="M" ColumnName="M" />
+                <ScalarProperty Name="Rho" ColumnName="Rho" />
+                <ScalarProperty Name="Sigma" ColumnName="Sigma" />
+                <ScalarProperty Name="B" ColumnName="B" />
+                <ScalarProperty Name="A" ColumnName="A" />
+                <ScalarProperty Name="MaturityDate" ColumnName="MaturityDate" />
+                <ScalarProperty Name="ProductId" ColumnName="ProductId" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

@@ -80,11 +80,11 @@
                         </dxg:GridControl.View>
                         <dxg:GridControl.Columns>
                             <dxg:GridColumn Header="RIC"  Width="110" Binding="{Binding InstruRic}">
-                                <dxg:GridColumn.CellStyle>
+                                <!--<dxg:GridColumn.CellStyle>
                                     <Style TargetType="dxg:LightweightCellEditor" >
                                         <Setter Property="Background" Value="YellowGreen"/>
                                     </Style>
-                                </dxg:GridColumn.CellStyle>
+                                </dxg:GridColumn.CellStyle>-->
                             </dxg:GridColumn>
                             <dxg:GridColumn Header="Description" Width="140" Binding="{Binding InstruDescription}"/>
                             <dxg:GridColumn Header="C/P" Width="40" Binding="{Binding OptionType}"/>
@@ -118,8 +118,6 @@
                             <dxg:GridColumn Header="Rho" Width="60"  Binding="{Binding ObsRho}"/>
                         </dxg:GridControl.Columns>
                     </dxg:GridControl>
-                    
-                 
                 </dxdo:LayoutPanel>
             </dxdo:LayoutGroup >
         </dxdo:DockLayoutManager>  

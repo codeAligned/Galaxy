@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 
 namespace PricingLib
 {
@@ -15,9 +14,8 @@ namespace PricingLib
         // value, the third row is the second derivative of the functional value.
         // The columns correspond to the points themselves.
         private Matrix[] _coefficients;
-        private Derivatives() { }
-
-        public Derivatives(int numberOfPoints) : this()
+       
+        public Derivatives(int numberOfPoints)
         {
             SolveCoefs(numberOfPoints);
         }
@@ -62,8 +60,6 @@ namespace PricingLib
         /// <summary>/// Computes the derivative of a function./// </summary>/// <param name="points">Equally spaced function value points</param>/// <param name="order">The order of the derivative to take</param>/// <param name="variablePosition">The position in the array of function values to take the derivative at.</param>/// <param name="step">The x axis step size.</param>/// <returns></returns>
         public double ComputeDerivative(double[] points, int order, int variablePosition, double step)
         {
-            Debug.Assert(points.Length == _coefficients.Length);
-            Debug.Assert(order < _coefficients.Length);
             double result = 0.0;
             for (int i = 0; i < _coefficients.Length; i++)
             {

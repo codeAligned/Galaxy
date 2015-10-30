@@ -7,16 +7,17 @@
       <Diagram DiagramId="e5daf19996d444e0a581f2a2f9c596d5" Name="Diagram1">
         <EntityTypeShape EntityType="DevDbModel.HistoricalPrice" Width="1.5" PointX="5.375" PointY="0.5" IsExpanded="true" />
         <EntityTypeShape EntityType="DevDbModel.Instrument" Width="1.5" PointX="7.75" PointY="0.5" IsExpanded="true" />
-        <EntityTypeShape EntityType="DevDbModel.Product" Width="1.5" PointX="2.875" PointY="0.5" IsExpanded="true" />
-        <EntityTypeShape EntityType="DevDbModel.VolParam" Width="1.5" PointX="0.5" PointY="0.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DevDbModel.Product" Width="1.5" PointX="3.75" PointY="0.5" IsExpanded="true" />
         <AssociationConnector Association="DevDbModel.HistoricalPrice_FK" ManuallyRouted="false" />
         <AssociationConnector Association="DevDbModel.ProductId_FK" ManuallyRouted="false" >
         </AssociationConnector>
-        <AssociationConnector Association="DevDbModel.VolParam_FK" ManuallyRouted="false" />
         <EntityTypeShape EntityType="DevDbModel.Deal" Width="1.875" PointX="9.875" PointY="0.5" />
         <AssociationConnector Association="DevDbModel.FK_Deal_FK" />
         <EntityTypeShape EntityType="DevDbModel.UserProfil" Width="1.5" PointX="5" PointY="3.625" />
         <AssociationConnector Association="DevDbModel.FK_Deal_UserProfil" />
+        <AssociationConnector Association="DevDbModel.FK_UserProfils_UserProfils" />
+        <EntityTypeShape EntityType="DevDbModel.VolParam" Width="1.5" PointX="1" PointY="0.5" />
+        <AssociationConnector Association="DevDbModel.FK_VolParam_FK" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

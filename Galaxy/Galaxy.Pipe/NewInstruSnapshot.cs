@@ -82,7 +82,7 @@ namespace Pipe
                     if (!volParamDico.ContainsKey(key))
                     {
                         // create default vol parameters if no params exist
-                        var volParam = new VolParam() {A = 0,B = 0,Sigma = 0,Rho = 0, M = 0, Accuracy = 0.0001,Guess = 0.12,LowerBound = 0.08, UpperBound = 0.8,MaturityDate = maturity,ProductId = option};
+                        var volParam = new VolParam() {A = 0,B = 0,Sigma = 0,Rho = 0, M = 0,MaturityDate = maturity,ProductId = option};
                         _dbManager.AddVolParameter(volParam);
                     }
                 }

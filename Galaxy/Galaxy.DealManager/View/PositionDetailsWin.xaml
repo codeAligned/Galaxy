@@ -6,7 +6,7 @@
         xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
         xmlns:dxr="http://schemas.devexpress.com/winfx/2008/xaml/ribbon"
         x:Class="Galaxy.DealManager.View.PositionDetailsWin"
-        Title="PositionDetailsWin" Height="310" Width="1200">
+        Title="PositionDetailsWin" Height="310" Width="1259.871">
     <Grid>
 
         <dxg:GridControl  ItemsSource="{Binding ObsDeals}">
@@ -21,14 +21,14 @@
                 <dxg:TableView AllowPerPixelScrolling="True" ShowGroupPanel="False" AllowEditing="False"/>
             </dxg:GridControl.View>
             <dxg:GridControl.Columns>
-                <dxg:GridColumn Header="Deal ID" Width="80" Binding="{Binding DealId}"/>
-                <dxg:GridColumn Header="Deal ID" Width="80" Binding="{Binding InstrumentId}"/>
-                <dxg:GridColumn Header="Description" Width="120" Binding="{Binding Instrument.FullName}"/>
+                <dxg:GridColumn Header="Deal ID" Width="60" Binding="{Binding DealId}"/>
+                <dxg:GridColumn Header="Instrument ID" Width="100" Binding="{Binding InstrumentId}"/>
+                <dxg:GridColumn Header="Description" Width="150" Binding="{Binding Instrument.FullName}"/>
                 <dxg:GridColumn Header="Trader" Width="100" Binding="{Binding TraderId}"/>
-                <dxg:GridColumn Header="Quantity" Width="80" Binding="{Binding Quantity}"/>
-                <dxg:GridColumn Header="Exec Price" Width="80" Binding="{Binding ExecPrice}"/>
+                <dxg:GridColumn Header="Quantity" Width="70" Binding="{Binding Quantity}"/>
+                <dxg:GridColumn Header="Exec Price" Width="70" Binding="{Binding ExecPrice}"/>
                 <dxg:GridColumn Header="Book ID" Width="80" Binding="{Binding BookId}"/>
-                <dxg:GridColumn Header="Trade Date" Width="130" Binding="{Binding TradeDate}"/>
+                <dxg:GridColumn Header="Trade Date" Width="80" Binding="{Binding TradeDate}"/>
                 <dxg:GridColumn Header="Clearing Fee" Width="80" Binding="{Binding ClearingFee}"/>
                 <dxg:GridColumn Header="Transac Fee" Width="80" Binding="{Binding TransactionFee}"/>
                 <dxg:GridColumn Header="Broker" Width="80" Binding="{Binding Broker}"/>

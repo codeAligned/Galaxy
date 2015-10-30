@@ -10,7 +10,7 @@
         <converter:RadioButtonCheckedConverter x:Key="RadioButtonCheckedConverter" />
     </UserControl.Resources>
     <Grid x:Name="LayoutRoot" >
-        <GroupBox dxe:ValidationService.IsValidationContainer="True"  Header="FO Info" HorizontalAlignment="Left"  VerticalAlignment="Top" Height="245" Width="240">
+        <GroupBox dxe:ValidationService.IsValidationContainer="True"  Header="FO Info" HorizontalAlignment="Left"  VerticalAlignment="Top" Height="240" Width="240">
             <StackPanel  x:Name="validationContainer">
                 <DockPanel>
                     <RadioButton GroupName="ProductType" Width="80"
@@ -24,7 +24,7 @@
                 </DockPanel>
                 <DockPanel>
                     <Label Content="Maturity :"  Width="80"/>
-                    <dxe:ComboBoxEdit Margin="5" NullText="Maturity" DisplayFormatString="dd/MM/yyyy" 
+                    <dxe:ComboBoxEdit Margin="3" NullText="Maturity" DisplayFormatString="dd/MM/yyyy" 
                                     Text="{Binding Maturity}" 
                                     SelectedItem="{Binding Maturity}" 
                                     ItemsSource="{Binding Maturitys}" >
@@ -32,25 +32,25 @@
                 </DockPanel>
                 <DockPanel>
                     <Label Content="Instru :"  Width="70"/>
-                    <dxe:ComboBoxEdit Margin="5" NullText="Instrument ID" 
-                                    Text="{Binding SelectedDeal.InstrumentId, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" 
+                    <dxe:ComboBoxEdit Margin="3" NullText="Instrument ID" 
+                                    Text="{Binding SelectedDeal.InstrumentId}" 
                                     SelectedItem="{Binding SelectedDeal.InstrumentId}" 
                                     ItemsSource="{Binding InstrumentNames}" >
                     </dxe:ComboBoxEdit>
                 </DockPanel>
                 <DockPanel>
                     <Label Content="Quantity :"  Width="80"/>
-                    <dxe:TextEdit Margin="5"  NullText="Quantity" Text="{Binding SelectedDeal.Quantity, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}"/>
+                    <dxe:TextEdit Margin="3"  NullText="Quantity" Text="{Binding SelectedDeal.Quantity}"/>
                 </DockPanel>
 
                 <DockPanel>
                     <Label Content="Price :"  Width="80"/>
-                    <dxe:TextEdit Margin="5"  NullText="Price" Text="{Binding SelectedDeal.ExecPrice, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}"/>
+                    <dxe:TextEdit Margin="3"  NullText="Price" Text="{Binding SelectedDeal.ExecPrice}"/>
                 </DockPanel>
 
                 <DockPanel>
                     <Label Content="Trader :"  Width="80"/>
-                    <dxe:ComboBoxEdit Margin="5" NullText="Trader ID"  Text="{Binding SelectedDeal.TraderId, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" 
+                    <dxe:ComboBoxEdit Margin="3" NullText="Trader ID"  Text="{Binding SelectedDeal.TraderId}" 
                         SelectedItem="{Binding SelectedDeal.TraderId}" 
                         ItemsSource="{Binding Users}" >
                     </dxe:ComboBoxEdit>
@@ -58,7 +58,7 @@
 
                 <DockPanel>
                     <Label Content="Book :"  Width="80"/>
-                    <dxe:ComboBoxEdit Margin="5" NullText="Book ID"  Text="{Binding SelectedDeal.BookId, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" 
+                    <dxe:ComboBoxEdit Margin="3,3,3,0" NullText="Book ID"  Text="{Binding SelectedDeal.BookId}" 
                         SelectedItem="{Binding SelectedDeal.BookId}" 
                         ItemsSource="{Binding Books}" >
                     </dxe:ComboBoxEdit>
@@ -70,7 +70,7 @@
             <StackPanel>
                 <DockPanel>
                     <Label Content="Broker :"  Width="88"/>
-                    <dxe:ComboBoxEdit Margin="5" NullText="Book ID"  Text="{Binding SelectedDeal.Broker, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" 
+                    <dxe:ComboBoxEdit Margin="5" NullText="Book ID"  Text="{Binding SelectedDeal.Broker}" 
                         SelectedItem="{Binding SelectedDeal.Broker}" 
                         ItemsSource="{Binding Brokers}" >
                     </dxe:ComboBoxEdit>
@@ -90,7 +90,7 @@
                 </DockPanel>
             </StackPanel>
         </GroupBox>
-        <GroupBox Header="State" HorizontalAlignment="Left"  VerticalAlignment="Top" Height="135" Width="260" Margin="492,0,0,0">
+        <GroupBox Header="State" HorizontalAlignment="Left"  VerticalAlignment="Top" Height="200" Width="260" Margin="492,0,0,0">
             <StackPanel>
                 <DockPanel>
                     <Label Content="Trade Date :"  Width="88"/>
@@ -98,15 +98,22 @@
                 </DockPanel>
                 <DockPanel>
                     <Label Content="Status :"  Width="88"/>
-                    <dxe:ComboBoxEdit Margin="5" NullText="Status"  Text="{Binding SelectedDeal.Status, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" 
+                    <dxe:ComboBoxEdit Margin="5" NullText="Status"  Text="{Binding SelectedDeal.Status}" 
                         SelectedItem="{Binding SelectedDeal.Status}" 
                         ItemsSource="{Binding Status}" >
                     </dxe:ComboBoxEdit>
-                    <!--<TextBox Margin="5" IsEnabled="False"  Text="{Binding SelectedDeal.Status}"/>-->
                 </DockPanel>
                 <DockPanel>
                     <Label Content="Comment :"  Width="88"/>
                     <dxe:TextEdit NullText="Comment" Margin="5" Text="{Binding SelectedDeal.Comment}"/>
+                </DockPanel>
+                <DockPanel>
+                    <Label Content="Fwd Level :"  Width="88"/>
+                    <dxe:TextEdit NullText="Forward Level" Margin="5" Text="{Binding SelectedDeal.ForwardLevel}"/>
+                </DockPanel>
+                <DockPanel>
+                    <Label Content="Vol Level :"  Width="88"/>
+                    <dxe:TextEdit NullText="Volatility Level" Margin="5" Text="{Binding SelectedDeal.VolatilityLevel}"/>
                 </DockPanel>
             </StackPanel>
         </GroupBox>

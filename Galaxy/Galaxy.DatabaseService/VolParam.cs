@@ -21,10 +21,6 @@ namespace Galaxy.DatabaseService
         public double Sigma { get; set; }
         public double Rho { get; set; }
         public double M { get; set; }
-        public double Accuracy { get; set; }
-        public double Guess { get; set; }
-        public double LowerBound { get; set; }
-        public double UpperBound { get; set; }
     
         public virtual Product Product { get; set; }
     }
