@@ -38,7 +38,7 @@ namespace Galaxy.VolManager.ViewModel
         private string _marketFeedStatus = "DOWN";
 
         private bool marketConnectionUp = false;
-        public DateTime[] AvailableMaturity { get; }
+        public ObservableCollection<DateTime> AvailableMaturity { get; set; }
 
         #endregion
 
@@ -82,6 +82,7 @@ namespace Galaxy.VolManager.ViewModel
 
             ImpliedVolPoints = new ObservableCollection<Point>();
             ModelVolPoints = new ObservableCollection<Point>();
+            AvailableMaturity = new ObservableCollection<DateTime>();
             ImpliedVolData = new List<VolatilityData>();
             _strikeList = new List<double>();
             _instrumentPriceSafeDico = new ConcurrentDictionary<string, double>();
@@ -92,8 +93,6 @@ namespace Galaxy.VolManager.ViewModel
 
             SelectedMinStrike = 2500;
             SelectedMaxStrike = 4000;
-
-            AvailableMaturity = _dbManager.GetAvailableMaturity(DateTime.Today);
         }
 
 
@@ -114,6 +113,13 @@ namespace Galaxy.VolManager.ViewModel
                 MessageBox.Show("Close price missing. Check database insertion");
                 return;
             }
+
+            DateTime[] maturityArray = _dbManager.GetAvailableMaturity(DateTime.Today);
+            foreach (var maturity in maturityArray)
+            {
+                AvailableMaturity.Add(maturity);
+            }
+
             _marketFeed.Connect(_ttlogin, _ttPassword, ConnectionStatusHandler, PriceUpdateHandler, null);
             InitializeTimer();
         }
