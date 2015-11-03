@@ -521,7 +521,7 @@ namespace Galaxy.PricingService
             string year = maturityDate.Year.ToString();
             char yearNb = year[3];
 
-            return letter + yearNb;
+            return prefix + letter + yearNb + suffix;
         }
 
         /// <summary>

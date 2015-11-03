@@ -68,7 +68,7 @@ namespace Pipe
                 writer.WriteLine("DealID,TraderID,Quantity,ExecPrice,BookId,TradeDate,Status,InstrumentID,ClearingFee,TransactionFee,Broker,CounterParty,Comment,ForwardLevel,VolatilityLevel");
                 foreach (var deal in dealPosition)
                 {
-                    writer.WriteLine($"{deal.DealId},{deal.TraderId},{deal.Quantity},{deal.ExecPrice},{deal.BookId},{deal.TradeDate.Value.ToString("G")},{deal.Status},{deal.InstrumentId},{deal.ClearingFee},{deal.TransactionFee},{deal.Broker},{deal.Counterparty},{deal.Comment},{deal.ForwardLevel},{deal.VolatilityLevel}");
+                    writer.WriteLine($"{deal.DealId},{deal.TraderId},{deal.Quantity},{deal.ExecPrice},{deal.BookId},{deal.TradeDate.ToString("G")},{deal.Status},{deal.InstrumentId},{deal.ClearingFee},{deal.TransactionFee},{deal.Broker},{deal.Counterparty},{deal.Comment},{deal.ForwardLevel},{deal.VolatilityLevel}");
                 }
             }
         }
