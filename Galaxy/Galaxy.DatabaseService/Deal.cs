@@ -18,19 +18,19 @@ namespace Galaxy.DatabaseService
         public string TraderId { get; set; }
         public int Quantity { get; set; }
         public double ExecPrice { get; set; }
-        public string InstrumentId { get; set; }
         public string BookId { get; set; }
-        public Nullable<System.DateTime> TradeDate { get; set; }
+        public System.DateTime TradeDate { get; set; }
         public string Status { get; set; }
+        public string InstrumentId { get; set; }
         public Nullable<double> ClearingFee { get; set; }
         public Nullable<double> TransactionFee { get; set; }
         public string Broker { get; set; }
         public string Counterparty { get; set; }
         public string Comment { get; set; }
-        public string ForwardLevel { get; set; }
-        public string VolatilityLevel { get; set; }
-
-        public Instrument Instrument { get; set; }
-        public UserProfil UserProfil { get; set; }
+        public Nullable<double> ForwardLevel { get; set; }
+        public Nullable<double> VolatilityLevel { get; set; }
+    
+        public virtual Instrument Instrument { get; set; }
+        public virtual UserProfil UserProfil { get; set; }
     }
 }

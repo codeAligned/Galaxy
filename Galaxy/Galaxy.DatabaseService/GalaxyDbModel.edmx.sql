@@ -2,13 +2,13 @@
 -- --------------------------------------------------
 -- Entity Designer DDL Script for SQL Server 2005, 2008, 2012 and Azure
 -- --------------------------------------------------
--- Date Created: 08/10/2015 17:31:37
+-- Date Created: 11/03/2015 11:15:49
 -- Generated from EDMX file: C:\Dev\Repo\PhiSquare\Galaxy\Galaxy.DatabaseService\GalaxyDbModel.edmx
 -- --------------------------------------------------
 
 SET QUOTED_IDENTIFIER OFF;
 GO
-USE [DevDb];
+USE [UatDb];
 GO
 IF SCHEMA_ID(N'dbo') IS NULL EXECUTE(N'CREATE SCHEMA [dbo]');
 GO
@@ -76,8 +76,9 @@ CREATE TABLE [dbo].[Instrument] (
     [OptionType] varchar(50)  NULL,
     [Strike] int  NULL,
     [MaturityDate] datetime  NOT NULL,
-    [RelatedFwd] varchar(50)  NULL,
-    [TtCode] varchar(50)  NOT NULL
+    [TtCode] varchar(50)  NOT NULL,
+    [RefForwardId] varchar(50)  NULL,
+    [RefFutureId] varchar(50)  NULL
 );
 GO
 
@@ -100,11 +101,7 @@ CREATE TABLE [dbo].[VolParam] (
     [B] float  NOT NULL,
     [Sigma] float  NOT NULL,
     [Rho] float  NOT NULL,
-    [M] float  NOT NULL,
-    [Accuracy] float  NOT NULL,
-    [Guess] float  NOT NULL,
-    [LowerBound] float  NOT NULL,
-    [UpperBound] float  NOT NULL
+    [M] float  NOT NULL
 );
 GO
 
@@ -115,23 +112,28 @@ CREATE TABLE [dbo].[Deal] (
     [Quantity] int  NOT NULL,
     [ExecPrice] float  NOT NULL,
     [BookId] varchar(50)  NOT NULL,
-    [TradeDate] datetime  NULL,
+    [TradeDate] datetime  NOT NULL,
     [Status] varchar(50)  NULL,
     [InstrumentId] varchar(50)  NOT NULL,
     [ClearingFee] float  NULL,
     [TransactionFee] float  NULL,
     [Broker] varchar(50)  NULL,
     [Counterparty] varchar(50)  NULL,
-    [Comment] varchar(50)  NULL
+    [Comment] varchar(50)  NULL,
+    [ForwardLevel] float  NULL,
+    [VolatilityLevel] float  NULL
 );
 GO
 
--- Creating table 'UserProfils'
-CREATE TABLE [dbo].[UserProfils] (
+-- Creating table 'UserProfil'
+CREATE TABLE [dbo].[UserProfil] (
     [UserId] varchar(50)  NOT NULL,
     [FirstName] varchar(50)  NOT NULL,
     [LastName] varchar(50)  NOT NULL,
-    [Job] varchar(50)  NOT NULL
+    [Job] varchar(50)  NOT NULL,
+    [Email] varchar(50)  NOT NULL,
+    [DailyReport] bit  NOT NULL,
+    [WeeklyReport] bit  NOT NULL
 );
 GO
 
@@ -169,9 +171,9 @@ ADD CONSTRAINT [PK_Deal]
     PRIMARY KEY CLUSTERED ([DealId] ASC);
 GO
 
--- Creating primary key on [UserId] in table 'UserProfils'
-ALTER TABLE [dbo].[UserProfils]
-ADD CONSTRAINT [PK_UserProfils]
+-- Creating primary key on [UserId] in table 'UserProfil'
+ALTER TABLE [dbo].[UserProfil]
+ADD CONSTRAINT [PK_UserProfil]
     PRIMARY KEY CLUSTERED ([UserId] ASC);
 GO
 
@@ -231,7 +233,7 @@ GO
 ALTER TABLE [dbo].[Deal]
 ADD CONSTRAINT [FK_Deal_UserProfil]
     FOREIGN KEY ([TraderId])
-    REFERENCES [dbo].[UserProfils]
+    REFERENCES [dbo].[UserProfil]
         ([UserId])
     ON DELETE NO ACTION ON UPDATE NO ACTION;
 GO

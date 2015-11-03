@@ -30,7 +30,5 @@ namespace Galaxy.DatabaseService
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Deal> Deals { get; set; }
-        public virtual UserProfil UserProfil1 { get; set; }
-        public virtual UserProfil UserProfil2 { get; set; }
     }
 }

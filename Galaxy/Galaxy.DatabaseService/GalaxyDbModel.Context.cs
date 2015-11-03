@@ -28,8 +28,8 @@ namespace Galaxy.DatabaseService
         public virtual DbSet<HistoricalPrice> HistoricalPrice { get; set; }
         public virtual DbSet<Instrument> Instrument { get; set; }
         public virtual DbSet<Product> Product { get; set; }
+        public virtual DbSet<VolParam> VolParam { get; set; }
         public virtual DbSet<Deal> Deal { get; set; }
         public virtual DbSet<UserProfil> UserProfil { get; set; }
-        public virtual DbSet<VolParam> VolParam { get; set; }
     }
 }
