@@ -10,7 +10,7 @@ namespace Galaxy.PricingService
             // Check if instrument qty and new newDeal qty have the same sign (+ buy - sell)
             if (newDeal.Quantity * pos.Quantity > 0)
             {
-                // compute harmonic mean
+                // Compute harmonic mean
                 pos.AvgPrice = (pos.AvgPrice * pos.Quantity + newDeal.ExecPrice * newDeal.Quantity) / (pos.Quantity + newDeal.Quantity);
                 // sum quantity
                 pos.Quantity += newDeal.Quantity;

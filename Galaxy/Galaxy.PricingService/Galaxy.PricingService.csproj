@@ -66,8 +66,6 @@
     <Compile Include="Matrix.cs" />
     <Compile Include="MaturityData.cs" />
     <Compile Include="Option.cs" />
-    <Compile Include="OptionLib.cs" />
-    <Compile Include="OptionLib%28backup%29.cs" />
     <Compile Include="Parameter.cs" />
     <Compile Include="Pnl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

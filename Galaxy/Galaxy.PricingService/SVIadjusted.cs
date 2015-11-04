@@ -73,10 +73,10 @@ namespace PricingLib
             };
 
 
-            var LMregressor = new LevenbergMarquardt(regressionFunction, SVIRawPara, observedParameters, _dataVarLogMon, 5);
-            LMregressor.compute();
+      //      var LMregressor = new LevenbergMarquardt(regressionFunction, SVIRawPara, observedParameters, _dataVarLogMon, 5);
+            SVIRawPara = LevenbergMarquardt.Compute(regressionFunction, SVIRawPara, observedParameters, _dataVarLogMon, 5);
 
-            SVIRawPara = LMregressor.regressionParameters;
+       //     SVIRawPara = LMregressor._regressionParameters;
         }
 
         public double getVol(double strike, double coef, double newFwd)

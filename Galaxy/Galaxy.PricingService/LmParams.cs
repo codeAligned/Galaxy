@@ -43,7 +43,7 @@ namespace Galaxy.PricingService
 		            */
         public int deriv_debug;  /* Derivative debug mode: 1 = Yes; 0 = No;
 
-                               If yes, compute both analytical and numerical
+                               If yes, Compute both analytical and numerical
                                derivatives and print them to the console for
                                comparison.
 

@@ -673,7 +673,7 @@ namespace Galaxy.PricingService
             }
 
             /*
-             *	 compute the norm of the scaled gradient.
+             *	 Compute the norm of the scaled gradient.
              */
             double gnorm = zero;
             if (fnorm != zero)
@@ -820,7 +820,7 @@ namespace Galaxy.PricingService
             fnorm1 = mp_enorm(m, wa4);
 
             /*
-             *	    compute the scaled actual reduction.
+             *	    Compute the scaled actual reduction.
              */
             double actred = -one;
             if ((p1 * fnorm1) < fnorm)
@@ -830,7 +830,7 @@ namespace Galaxy.PricingService
             }
 
             /*
-             *	    compute the scaled predicted reduction and
+             *	    Compute the scaled predicted reduction and
              *	    the scaled directional derivative.
              */
             jj = 0;
@@ -858,7 +858,7 @@ namespace Galaxy.PricingService
             double dirder = -(temp1 * temp1 + temp2 * temp2);
 
             /*
-             *	    compute the ratio of the actual to the predicted
+             *	    Compute the ratio of the actual to the predicted
              *	    reduction.
              */
             double ratio = zero;
@@ -1207,7 +1207,7 @@ namespace Galaxy.PricingService
             }
 
             /* If there are any parameters requiring analytical derivatives,
-               then compute them first. */
+               then Compute them first. */
             if (hasAnalyticalDeriv != 0)
             {
                 funct(x, wa, dvec, priv);
@@ -1309,7 +1309,7 @@ namespace Galaxy.PricingService
                         if (nfev != 0) nfev = nfev + 1; // todo: correct translation from C?
                         x[ifree[j]] = temp;
 
-                        /* Now compute derivative as (f(x+h) - f(x-h))/(2h) */
+                        /* Now Compute derivative as (f(x+h) - f(x-h))/(2h) */
                         ij -= m;
                         if (debug == 0)
                         {
@@ -1364,7 +1364,7 @@ namespace Galaxy.PricingService
             *     subroutine qrfac
             *
             *     this subroutine uses householder transformations with column
-            *     pivoting (optional) to compute a qr factorization of the
+            *     pivoting (optional) to Compute a qr factorization of the
             *     m by n matrix a. that is, qrfac determines an orthogonal
             *     matrix q, a permutation matrix p, and an upper trapezoidal
             *     matrix r with diagonal elements of nonincreasing magnitude,
@@ -1440,7 +1440,7 @@ namespace Galaxy.PricingService
             const double one = 1.0;
             const double p05 = 0.05;
             /*
-             *     compute the initial column norms and initialize several arrays.
+             *     Compute the initial column norms and initialize several arrays.
              */
             int ij = 0;
             // references a range of values inside larger array a (pointer arithmatic work-around)
@@ -1504,7 +1504,7 @@ namespace Galaxy.PricingService
 
             L40:
                 /*
-                 *	 compute the householder transformation to reduce the
+                 *	 Compute the householder transformation to reduce the
                  *	 j-th column of a to a multiple of the j-th unit vector.
                  */
                 jj = j + m * j;
@@ -1733,7 +1733,7 @@ namespace Galaxy.PricingService
                         sin = cos * tan;
                     }
                     /*
-                     *	    compute the modified diagonal element of r and
+                     *	    Compute the modified diagonal element of r and
                      *	    the modified element of ((q transpose)*b,0).
                      */
                     r[kk] = cos * r[kk] + sin * sdiag[k];
@@ -1920,7 +1920,7 @@ namespace Galaxy.PricingService
             const double p001 = 0.001;
 
             /*
-             *     compute and store in x the gauss-newton direction. if the
+             *     Compute and store in x the gauss-newton direction. if the
              *     jacobian is rank-deficient, obtain a least squares solution.
              */
             int nsing = n;
@@ -2077,7 +2077,7 @@ namespace Galaxy.PricingService
             if ((Math.Abs(fp) <= p1 * delta) || ((parl == 0) && (fp <= temp) && (temp < 0)) || (iter == 10))
                 goto L220;
             /*
-             *	 compute the newton correction.
+             *	 Compute the newton correction.
              */
             for (j = 0; j < n; j++)
             {
@@ -2115,7 +2115,7 @@ namespace Galaxy.PricingService
                 paru = Math.Min(paru, par);
             }
             /*
-             *	 compute an improved estimate for par.
+             *	 Compute an improved estimate for par.
              */
             par = Math.Max(parl, par + parc);
             /*
@@ -2293,7 +2293,7 @@ namespace Galaxy.PricingService
         c                      t     t
         c           p*inverse(r *r)*p  .
         c
-        c     if a is nearly rank deficient, it may be desirable to compute
+        c     if a is nearly rank deficient, it may be desirable to Compute
         c     the covariance matrix corresponding to the linearly independent
         c     columns of a. to define the numerical rank of a, covar uses
         c     the tolerance tol. if l is the largest integer such that

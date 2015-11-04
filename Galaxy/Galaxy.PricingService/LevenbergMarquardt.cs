@@ -2,132 +2,89 @@
 
 namespace PricingLib
 {
-    public class LevenbergMarquardt
+    public static class LevenbergMarquardt
     {
-        private Matrix _jacobian;
-        private Matrix _residuals;
-        private Matrix _regressionParameters0;
-        private Derivatives _derivatives;
-        private Parameter[] _regressionParameters;
-        private Parameter[] _observedParameters;
-        private Func<double>[] _regressionFunctions;
-        private double _error;
-        private double[,] _data;
-        private double _l0 = 100.0;
-        private double _v = 10.0;
-
-        public LevenbergMarquardt(Func<double>[] regressionFunctions, Parameter[] regressionParameters, Parameter[] observedParameters, double[,] data, int numberOfDerivativePoints)
+        public static Parameter[] Compute(Func<double>[] regressionFunctions, Parameter[] regressionParameters, Parameter[] observedParameters, double[,] data, int numberOfDerivativePoints)
         {
-            System.Diagnostics.Debug.Assert(data.GetLength(1) == observedParameters.Length + regressionFunctions.Length);
-            _data = data;
-            _observedParameters = observedParameters;
-            _regressionParameters = regressionParameters;
-            _regressionFunctions = regressionFunctions;
-            _error = 1;
-            int numberOfParameters = _regressionParameters.Length;
-            int numberOfPoints = data.GetLength(0);
-            _derivatives = new Derivatives(numberOfDerivativePoints);
-            int numberOfFunctions = _regressionFunctions.Length;
-            _jacobian = new Matrix(numberOfFunctions * numberOfPoints, numberOfParameters);
-            _residuals = new Matrix(numberOfFunctions * numberOfPoints, 1); 
-            _regressionParameters0 = new Matrix(numberOfParameters, 1);
-        }
+            double l0 = 100.0;
+            double v = 10.0;
 
-        public LevenbergMarquardt(Func<double>[] regressionFunctions, Parameter[] regressionParameters, Parameter[] observedParameters, double[,] data) : this(regressionFunctions, regressionParameters, observedParameters, data, 3)
-        {
+            Derivatives derivatives = new Derivatives(numberOfDerivativePoints);
+            Matrix jacobian = new Matrix(regressionFunctions.Length * data.GetLength(0), regressionParameters.Length);
+            Matrix residuals = new Matrix(regressionFunctions.Length * data.GetLength(0), 1);
+            Matrix regressionParameters0 = new Matrix(regressionParameters.Length, 1);
 
-        }
-
-        public void Iterate()
-        {
-            int numberOfPoints = _data.GetLength(0);
-            int numberOfParameters = _regressionParameters.Length;
-            int numberOfFunctions = _regressionFunctions.Length;
-            _error = 0.0;
-            for (int i = 0; i < numberOfFunctions; i++)
+            for (int f = 0; f < 10000; f++)
             {
-                for (int j = 0; j < numberOfPoints; j++)
-                {
-                    for (int k = 0; k < _observedParameters.Length; k++)
-                    {
-                        _observedParameters[k].Value = _data[j, k];
-                    }
-                    double functionValue = _regressionFunctions[i]();
-                    double residual = _data[j, _observedParameters.Length + i] - functionValue;
-                    _residuals[j + i * numberOfPoints, 0] = residual;
-                    _error += residual * residual;
-                    for (int k = 0; k < numberOfParameters; k++)
-                    {
-                        _jacobian[j + i * numberOfPoints, k] = _derivatives.ComputePartialDerivative(_regressionFunctions[i], _regressionParameters[k], 1, functionValue);
-                    }
-                }
-            }
-            for (int i = 0; i < numberOfParameters; i++)
-            {
-                _regressionParameters0[i, 0] = _regressionParameters[i];
-            }
+                int numberOfPoints = data.GetLength(0);
+                int numberOfParameters = regressionParameters.Length;
+                int numberOfFunctions = regressionFunctions.Length;
+                double error = 0.0;
 
-            Matrix jacobianTranspose = _jacobian.Transpose();
-            Matrix jacobianTransposeResiduals = jacobianTranspose * _residuals;
-            Matrix jacobianTransposeJacobian = jacobianTranspose * _jacobian;
-            Matrix jacobianTransposeJacobianDiagnol = new Matrix(jacobianTransposeJacobian.RowCount, jacobianTransposeJacobian.RowCount);
-
-            for (int i = 0; i < jacobianTransposeJacobian.RowCount; i++)
-            {
-                jacobianTransposeJacobianDiagnol[i, i] = jacobianTransposeJacobian[i, i];
-            }
-            double newResidual = _error + 1.0;
-            _l0 /= _v;
-            while (newResidual > _error)
-            {
-                newResidual = 0.0; _l0 *= _v;
-                Matrix matLHS = jacobianTransposeJacobian + _l0 * jacobianTransposeJacobianDiagnol;
-                var delta = matLHS.SolveFor(jacobianTransposeResiduals);
-                ;
-                var newRegressionParameters = _regressionParameters0 + delta;
-                for (int i = 0; i < numberOfParameters; i++)
-                {
-                    _regressionParameters[i].Value = newRegressionParameters[i, 0];
-                }
                 for (int i = 0; i < numberOfFunctions; i++)
                 {
                     for (int j = 0; j < numberOfPoints; j++)
                     {
-                        for (int k = 0; k < _observedParameters.Length; k++)
+                        for (int k = 0; k < observedParameters.Length; k++)
                         {
-                            _observedParameters[k].Value = _data[j, k];
+                            observedParameters[k].Value = data[j, k];
                         }
-                        double functionValue = _regressionFunctions[i]();
-                        double residual = _data[j, _observedParameters.Length + i] - functionValue; newResidual += residual * residual;
+                        double functionValue = regressionFunctions[i]();
+                        double residual = data[j, observedParameters.Length + i] - functionValue;
+                        residuals[j + i * numberOfPoints, 0] = residual;
+                        error += residual * residual;
+                        for (int k = 0; k < numberOfParameters; k++)
+                        {
+                            jacobian[j + i * numberOfPoints, k] = derivatives.ComputePartialDerivative(regressionFunctions[i], regressionParameters[k], 1, functionValue);
+                        }
                     }
                 }
-            }
-            _l0 /= _v;
-        }
+                for (int i = 0; i < numberOfParameters; i++)
+                {
+                    regressionParameters0[i, 0] = regressionParameters[i];
+                }
 
-        public void Res()
-        {
-            for (int i = 0; i < _regressionParameters.Length; i++)
-            {
-                Console.WriteLine($"param {i} : {_regressionParameters[i]}");
-            }
-            Console.WriteLine(_error);
-        }
+                Matrix jacobianTranspose = jacobian.Transpose();
+                Matrix jacobianTransposeResiduals = jacobianTranspose * residuals;
+                Matrix jacobianTransposeJacobian = jacobianTranspose * jacobian;
+                Matrix jacobianTransposeJacobianDiagnol = new Matrix(jacobianTransposeJacobian.RowCount, jacobianTransposeJacobian.RowCount);
 
-        public void compute()
-        {
-            for (int i = 0; i < 10000; i++)
-            {
-                Iterate();
-            }
-        }
+                for (int i = 0; i < jacobianTransposeJacobian.RowCount; i++)
+                {
+                    jacobianTransposeJacobianDiagnol[i, i] = jacobianTransposeJacobian[i, i];
+                }
 
-        public Parameter[] regressionParameters
-        {
-            get
-            {
-                return _regressionParameters;
+                double newResidual = error + 1.0;
+                l0 /= v;
+
+                while (newResidual > error)
+                {
+                    newResidual = 0.0; l0 *= v;
+                    Matrix matLHS = jacobianTransposeJacobian + l0 * jacobianTransposeJacobianDiagnol;
+                    var delta = matLHS.SolveFor(jacobianTransposeResiduals);
+                    ;
+                    var newRegressionParameters = regressionParameters0 + delta;
+                    for (int i = 0; i < numberOfParameters; i++)
+                    {
+                        regressionParameters[i].Value = newRegressionParameters[i, 0];
+                    }
+                    for (int i = 0; i < numberOfFunctions; i++)
+                    {
+                        for (int j = 0; j < numberOfPoints; j++)
+                        {
+                            for (int k = 0; k < observedParameters.Length; k++)
+                            {
+                                observedParameters[k].Value = data[j, k];
+                            }
+                            double functionValue = regressionFunctions[i]();
+                            double residual = data[j, observedParameters.Length + i] - functionValue; newResidual += residual * residual;
+                        }
+                    }
+                }
+                l0 /= v;
             }
+
+            return regressionParameters;
         }
     }
 }

@@ -64,10 +64,10 @@ namespace PricingLib
             };
 
 
-            var LMregressor = new LevenbergMarquardt(Function, WingCenterPara, observedParameters, _dataVolLogMoy, 5);//for point of derivatives, regarder codeWWWfavouriteP
-            LMregressor.compute();
+       //     var LMregressor = new LevenbergMarquardt(Function, WingCenterPara, observedParameters, _dataVolLogMoy, 5);//for point of derivatives, regarder codeWWWfavouriteP
+            WingCenterPara = LevenbergMarquardt.Compute(Function, WingCenterPara, observedParameters, _dataVolLogMoy, 5);
 
-            WingCenterPara = LMregressor.regressionParameters;
+        //    WingCenterPara = LMregressor._regressionParameters;
             interpolationLagrangeExt();
         }
 
