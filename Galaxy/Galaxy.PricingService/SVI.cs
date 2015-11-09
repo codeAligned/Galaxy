@@ -16,7 +16,7 @@ namespace PricingLib
 
             Func<double>[] regressionFunction =
             {
-                () => sVIRawPara[0].Value + sVIRawPara[1].Value*(sVIRawPara[2].Value*(k-sVIRawPara[4].Value)+Math.Sqrt(Math.Pow((k-sVIRawPara[4].Value),2)+Math.Pow(sVIRawPara[3].Value,2)))
+                () => sVIRawPara[0].Value + sVIRawPara[1].Value*(sVIRawPara[2].Value*(k-sVIRawPara[4].Value) + Math.Sqrt(Math.Pow((k-sVIRawPara[4].Value),2)+Math.Pow(sVIRawPara[3].Value,2)))
             };
 
             return LevenbergMarquardt.Compute(regressionFunction, sVIRawPara, observedParameters, _dataVarLogMon, 5);

@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BookPosition.cs" />
+    <Compile Include="CubicSpline.cs" />
     <Compile Include="CustomUserVariable.cs" />
     <Compile Include="Derivatives.cs" />
     <Compile Include="Email.cs" />
@@ -65,6 +66,7 @@
     <Compile Include="LUDecompositionResults.cs" />
     <Compile Include="Matrix.cs" />
     <Compile Include="MaturityData.cs" />
+    <Compile Include="NR.cs" />
     <Compile Include="Option.cs" />
     <Compile Include="Parameter.cs" />
     <Compile Include="Pnl.cs" />

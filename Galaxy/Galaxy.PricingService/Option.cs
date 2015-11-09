@@ -81,6 +81,23 @@ namespace Galaxy.PricingService
             throw e;
         }
 
+        /// <summary>
+        /// Differentiation
+        /// </summary>
+        public static double DegueulasseDelta(string optionType, double spot,double modelVol, double strike, double time , int qty, double a,double b,double sigma,double rho, double m, double rate = 0, double dividend = 0)
+        {
+            double spotBump = 0.001;
+
+            double fwdBumpUp = spot * (1 + spotBump);
+            double fwdBumpDown = spot * (1 - spotBump);
+            double volBumpUp = SviVolatility(strike, fwdBumpUp, a, b, sigma, rho, m, time);
+            double volBumpDown = SviVolatility(strike, fwdBumpDown, a, b, sigma, rho, m, time);
+
+            double fairBumpUp = BlackScholes(optionType, fwdBumpUp, strike, time, volBumpUp, rate, dividend);
+            double fairBumpDown = BlackScholes(optionType, fwdBumpDown, strike, time, volBumpDown, rate, dividend);
+            return ((fairBumpUp - fairBumpDown)* qty) / (2 * spotBump * spot);
+        }
+
         [ExcelFunction(Name = "GREEK.THETA.CALL", Description = "Theta for call option")]
         public static double CallTheta(double spot, double strike, double volatility, double time,
                                             [ExcelArgument(Description = "Optional")] double rate = 0,
@@ -545,6 +562,15 @@ namespace Galaxy.PricingService
         }
 
         /// <summary>
+        /// SVI volatility model,   a=hauteur, b=backbone, rho=rotation, sigma=convexe
+        /// </summary>
+        public static double SviVolatility2(double moneyness, double a, double b, double sigma, double rho, double m)
+        {
+            return Sqrt(Abs((a + b * (rho * (moneyness - m) + Sqrt((moneyness - m) * (moneyness - m) + sigma * sigma))) ));
+        }
+
+
+        /// <summary>
         /// SVI volatility model
         /// </summary>
         [ExcelFunction(Name = "VOLATILITY.SVI", Description = "Return previous week day")]
@@ -552,6 +578,16 @@ namespace Galaxy.PricingService
         {
             double moneyness = Log(strike / spot);
             return SviVolatility(moneyness, a, b, sigma, rho, m, time);
+        }
+
+        /// <summary>
+        /// SVI volatility model
+        /// </summary>
+        [ExcelFunction(Name = "VOLATILITY.SVI", Description = "Return previous week day")]
+        public static double SviVolatility2(double strike, double spot, double a, double b, double sigma, double rho, double m)
+        {
+            double moneyness = Log(strike / spot);
+            return SviVolatility2(moneyness, a, b, sigma, rho, m);
         }
 
         /// <summary>

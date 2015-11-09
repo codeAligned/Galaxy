@@ -84,6 +84,25 @@ namespace PricingLib
             return Matrix.Add(leftMatrix, rightMatrix);
         }
 
+        public static Matrix Subtract(Matrix leftMatrix, Matrix rightMatrix)
+        {
+            Matrix resultMatrix = new Matrix(leftMatrix.RowCount, rightMatrix.ColumnCount);
+            for (int i = 0; i < leftMatrix.RowCount; i++)
+            {
+                for (int j = 0; j < leftMatrix.ColumnCount; j++)
+                {
+                    resultMatrix[i, j] = leftMatrix[i, j] - rightMatrix[i, j];
+                }
+            }
+            return resultMatrix;
+        }
+
+        public static Matrix operator -(Matrix leftMatrix, Matrix rightMatrix)
+        {
+            return Matrix.Subtract(leftMatrix, rightMatrix);
+        }
+
+
         public static Matrix Multiply(Matrix leftMatrix, Matrix rightMatrix)
         {
             Debug.Assert(leftMatrix.ColumnCount == rightMatrix.RowCount);
