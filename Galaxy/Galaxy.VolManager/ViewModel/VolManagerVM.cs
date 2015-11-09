@@ -16,6 +16,7 @@ using Galaxy.PricingService;
 using Galaxy.VolManager.Commands;
 using Galaxy.VolManager.Model;
 using log4net;
+using PricingLib;
 
 
 namespace Galaxy.VolManager.ViewModel
@@ -26,6 +27,7 @@ namespace Galaxy.VolManager.ViewModel
 
         #region Parameters
         private VolParam _param;
+        private VolParam _newParam;
 
         private readonly string _ttlogin = ConfigurationManager.AppSettings["Login"];
         private readonly string _ttPassword = ConfigurationManager.AppSettings["PassWord"];
@@ -54,6 +56,8 @@ namespace Galaxy.VolManager.ViewModel
 
         public ObservableCollection<Point> ImpliedVolPoints { get; }
         public ObservableCollection<Point> ModelVolPoints { get; }
+        public ObservableCollection<Point> NewModelVolPoints { get; }
+
         public List<VolatilityData> ImpliedVolData { get; }
         public List<double> _strikeList;
 
@@ -64,6 +68,12 @@ namespace Galaxy.VolManager.ViewModel
         {
             get { return _param; }
             set { _param = value; OnPropertyChanged(nameof(Param)); }
+        }
+
+        public VolParam NewParam 
+         {
+            get { return _newParam; }
+            set { _newParam = value; }
         }
 
         #endregion
@@ -82,6 +92,7 @@ namespace Galaxy.VolManager.ViewModel
 
             ImpliedVolPoints = new ObservableCollection<Point>();
             ModelVolPoints = new ObservableCollection<Point>();
+            NewModelVolPoints = new ObservableCollection<Point>();
             AvailableMaturity = new ObservableCollection<DateTime>();
             ImpliedVolData = new List<VolatilityData>();
             _strikeList = new List<double>();
@@ -93,6 +104,8 @@ namespace Galaxy.VolManager.ViewModel
 
             SelectedMinStrike = 2500;
             SelectedMaxStrike = 4000;
+
+            NewParam = new VolParam();
         }
 
 
@@ -198,7 +211,8 @@ namespace Galaxy.VolManager.ViewModel
                 }
             }
 
-            DisplayModelVol();
+            //DisplayModelVol();
+            DisplayNewModelVol();
         }
 
         private string GetOtmOptionType(int strike, double spot)
@@ -286,6 +300,14 @@ namespace Galaxy.VolManager.ViewModel
 
         private void FitCurve(object obj)
         {
+            OldFit();
+            NewFit();
+        }
+
+
+
+        private void OldFit()
+        {
             string futureId = Option.GetNextFutureTtCode("FESX",SelectedMaturity);
             string forwardId = Option.BuildForwardId("STXE",SelectedMaturity);
 
@@ -336,9 +358,76 @@ namespace Galaxy.VolManager.ViewModel
             Param.M = Math.Round(p[4], 4);
         }
 
-        private void DisplayModelVol()
+        private void NewFit()
         {
-            ModelVolPoints.Clear();
+            string futureId = Option.GetNextFutureTtCode("FESX", SelectedMaturity);
+            string forwardId = Option.BuildForwardId("STXE", SelectedMaturity);
+
+            double forward;
+            if (_instrumentPriceSafeDico.TryGetValue(forwardId, out forward))
+            {
+                UpdateForwardPrices(forwardId, futureId);
+            }
+
+            double[,] data = new double[ImpliedVolPoints.Count, 2];
+
+            for (int i = 0; i < ImpliedVolPoints.Count; i++)
+            {
+                data[i, 0] = ImpliedVolPoints[i].X;
+                data[i, 1] = ImpliedVolPoints[i].Y;
+            }
+
+            Parameter[] outParams = SVI.Fit(data, forward);
+
+           
+
+            NewParam.A = Math.Round(outParams[0].Value, 4);
+            NewParam.B = Math.Round(outParams[1].Value, 4);
+            NewParam.Rho = Math.Round(outParams[2].Value, 4);
+            NewParam.Sigma = Math.Round(outParams[3].Value, 4);
+            NewParam.M = Math.Round(outParams[4].Value, 4);
+
+            Console.WriteLine($"param a: {outParams[0].Value}");
+            Console.WriteLine($"param b: {outParams[1].Value}");
+            Console.WriteLine($"param rho: {outParams[2].Value}");
+            Console.WriteLine($"param sig: {outParams[3].Value}");
+            Console.WriteLine($"param m: {outParams[4].Value}");
+        }
+
+        //private void DisplayModelVol()
+        //{
+        //    ModelVolPoints.Clear();
+        //    foreach (var data in ImpliedVolData)
+        //    {
+        //        double forwardPrice;
+        //        if (_instrumentPriceSafeDico.TryGetValue(data.ForwardName, out forwardPrice))
+        //        {
+        //            UpdateForwardPrices(data.ForwardName, data.FutureName);
+        //        }
+        //        else
+        //        {
+        //            DateTime previousDay = Option.PreviousWeekDay(DateTime.Today);
+        //            double futureClose = _dbManager.GetSpotClose(previousDay, data.FutureName);
+        //            double forwardClose = Option.GetForwardClose(data.ForwardName, data.Maturity, futureClose);
+        //            double forwardBaseOffset = forwardClose - futureClose;
+        //            _fwdBaseOffsetDico.Add(data.ForwardName, forwardBaseOffset);
+        //            _instrumentPriceSafeDico.TryAdd(data.ForwardName, 0);
+        //            continue;
+        //        }
+
+        //        if (forwardPrice != 0)
+        //        {
+        //            double time = Option.GetTimeToExpiration(DateTime.Today, data.Maturity);
+        //            double modelVol = Option.SviVolatility(data.Strike, forwardPrice, Param.A, Param.B, Param.Sigma, Param.Rho,Param.M, time);
+
+        //            ModelVolPoints.Add(new Point(data.Strike, modelVol));
+        //        }
+        //    }         
+        //}
+
+        private void DisplayNewModelVol()
+        {
+            NewModelVolPoints.Clear();
             foreach (var data in ImpliedVolData)
             {
                 double forwardPrice;
@@ -346,25 +435,15 @@ namespace Galaxy.VolManager.ViewModel
                 {
                     UpdateForwardPrices(data.ForwardName, data.FutureName);
                 }
-                else
-                {
-                    DateTime previousDay = Option.PreviousWeekDay(DateTime.Today);
-                    double futureClose = _dbManager.GetSpotClose(previousDay, data.FutureName);
-                    double forwardClose = Option.GetForwardClose(data.ForwardName, data.Maturity, futureClose);
-                    double forwardBaseOffset = forwardClose - futureClose;
-                    _fwdBaseOffsetDico.Add(data.ForwardName, forwardBaseOffset);
-                    _instrumentPriceSafeDico.TryAdd(data.ForwardName, 0);
-                    continue;
-                }
 
                 if (forwardPrice != 0)
                 {
                     double time = Option.GetTimeToExpiration(DateTime.Today, data.Maturity);
-                    double modelVol = Option.SviVolatility(data.Strike, forwardPrice, Param.A, Param.B, Param.Sigma, Param.Rho,Param.M, time);
+                    double modelVol = Option.SviVolatility2(data.Strike, forwardPrice, NewParam.A, NewParam.B, NewParam.Sigma, NewParam.Rho, NewParam.M);
 
-                    ModelVolPoints.Add(new Point(data.Strike, modelVol));
+                    NewModelVolPoints.Add(new Point(data.Strike, modelVol));
                 }
-            }         
+            }
         }
 
         private void InsertParamToDb(object obj)

@@ -108,6 +108,7 @@
                             </dxc:ChartControl.Palette>
                             <dxc:XYDiagram2D>
                                 <dxc:LineStackedSeries2D ArgumentDataMember="X" ValueDataMember="Y" DataSource="{Binding Path=ModelVolPoints}"/>
+                                <dxc:LineStackedSeries2D ArgumentDataMember="X" ValueDataMember="Y" DataSource="{Binding Path=NewModelVolPoints}"/>
                                 <dxc:PointSeries2D ArgumentDataMember="X" ValueDataMember="Y" DataSource="{Binding Path=ImpliedVolPoints}"/>
                             </dxc:XYDiagram2D>
                         </dxc:ChartControl>

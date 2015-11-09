@@ -6,7 +6,7 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{0DEDEED1-5C10-470E-B82F-56CBDDD2586E}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Galaxy.VolManager</RootNamespace>
     <AssemblyName>Galaxy.VolManager</AssemblyName>
