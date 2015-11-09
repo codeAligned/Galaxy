@@ -50,11 +50,9 @@
   <ItemGroup>
     <Compile Include="BookPosition.cs" />
     <Compile Include="CubicSpline.cs" />
-    <Compile Include="CustomUserVariable.cs" />
     <Compile Include="Derivatives.cs" />
     <Compile Include="Email.cs" />
     <Compile Include="fittageVol.cs" />
-    <Compile Include="FunctionModel.cs" />
     <Compile Include="GSVI.cs" />
     <Compile Include="InstrumentPosition.cs" />
     <Compile Include="LevenbergMarquardt.cs" />

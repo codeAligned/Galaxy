@@ -159,7 +159,7 @@ namespace Galaxy.PricingService.Test
         [Test]
         public void TestVolatilitySvi()
         {
-            double result = Option.SviVolatility(3300, 3224.048096, 0.0179, -0.6701, -0.0823, 0.9356, 0.2935, 0.02739);
+            double result = Option.SviVolatility(3300, 3224.048096, 0.0179, -0.6701, -0.0823, 0.9356, 0.2935);
             double expected = 0.2684;
             Assert.AreEqual(Math.Round(result, 4), expected);
         }

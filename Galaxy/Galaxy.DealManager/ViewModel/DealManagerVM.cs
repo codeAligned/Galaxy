@@ -573,7 +573,8 @@ namespace Galaxy.DealManager.ViewModel
                         double targetOptionPrice = GetOutTheMoneyOptionPrice(pos, targetOptionType);
                         double time = Option.GetTimeToExpiration(DateTime.Today, pos.MaturityDate);
                         pos.ImpliedVol = Option.BlackScholesVol(targetOptionPrice, pos.ForwardPrice, pos.Strike, targetOptionType, time);
-                        pos.ModelVol = Option.SviVolatility(pos.Strike, pos.ForwardPrice, param.A,param.B,param.Sigma,param.Rho,param.M,time);
+                        //pos.ModelVol = Option.SviVolatility(pos.Strike, pos.ForwardPrice, param.A,param.B,param.Sigma,param.Rho,param.M,time);
+                        pos.ModelVol = Option.SviVolatility2(pos.Strike, pos.ForwardPrice, param.A, param.B, param.Sigma, param.Rho, param.M);
                         pos.FairPrice = Option.BlackScholes(pos.OptionType, pos.ForwardPrice, pos.Strike, time,pos.ModelVol);
                         pos.Delta = pos.Quantity * Option.Delta(pos.OptionType, pos.ForwardPrice, pos.Strike, pos.ModelVol, time);
                         pos.StickyDelta = Option.DegueulasseDelta(pos.OptionType, pos.ForwardPrice, pos.ModelVol,pos.Strike, time, pos.Quantity, param.A, param.B, param.Sigma, param.Rho, param.M);

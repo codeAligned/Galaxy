@@ -90,8 +90,8 @@ namespace Galaxy.PricingService
 
             double fwdBumpUp = spot * (1 + spotBump);
             double fwdBumpDown = spot * (1 - spotBump);
-            double volBumpUp = SviVolatility(strike, fwdBumpUp, a, b, sigma, rho, m, time);
-            double volBumpDown = SviVolatility(strike, fwdBumpDown, a, b, sigma, rho, m, time);
+            double volBumpUp = SviVolatility(strike, fwdBumpUp, a, b, sigma, rho, m);
+            double volBumpDown = SviVolatility(strike, fwdBumpDown, a, b, sigma, rho, m);
 
             double fairBumpUp = BlackScholes(optionType, fwdBumpUp, strike, time, volBumpUp, rate, dividend);
             double fairBumpDown = BlackScholes(optionType, fwdBumpDown, strike, time, volBumpDown, rate, dividend);
@@ -553,41 +553,41 @@ namespace Galaxy.PricingService
             return BuildForwardId(prefix, maturity);
         }
 
-        /// <summary>
-        /// SVI volatility model
-        /// </summary>
-        public static double SviVolatility(double moneyness, double a, double b, double sigma, double rho, double m, double time)
-        {
-            return Sqrt(Abs((a + b * (rho * (moneyness - m) + Sqrt((moneyness - m) * (moneyness - m) + sigma * sigma))) / time));
-        }
+        ///// <summary>
+        ///// SVI volatility model
+        ///// </summary>
+        //public static double SviVolatility(double moneyness, double a, double b, double sigma, double rho, double m, double time)
+        //{
+        //    return Sqrt(Abs((a + b * (rho * (moneyness - m) + Sqrt((moneyness - m) * (moneyness - m) + sigma * sigma))) / time));
+        //}
 
         /// <summary>
         /// SVI volatility model,   a=hauteur, b=backbone, rho=rotation, sigma=convexe
         /// </summary>
-        public static double SviVolatility2(double moneyness, double a, double b, double sigma, double rho, double m)
+        public static double SviVolatility(double moneyness, double a, double b, double sigma, double rho, double m)
         {
             return Sqrt(Abs((a + b * (rho * (moneyness - m) + Sqrt((moneyness - m) * (moneyness - m) + sigma * sigma))) ));
         }
 
 
-        /// <summary>
-        /// SVI volatility model
-        /// </summary>
-        [ExcelFunction(Name = "VOLATILITY.SVI", Description = "Return previous week day")]
-        public static double SviVolatility(double strike, double spot, double a, double b, double sigma, double rho, double m, double time)
-        {
-            double moneyness = Log(strike / spot);
-            return SviVolatility(moneyness, a, b, sigma, rho, m, time);
-        }
+        ///// <summary>
+        ///// SVI volatility model
+        ///// </summary>
+        //[ExcelFunction(Name = "VOLATILITY.SVI", Description = "Return previous week day")]
+        //public static double SviVolatility(double strike, double spot, double a, double b, double sigma, double rho, double m, double time)
+        //{
+        //    double moneyness = Log(strike / spot);
+        //    return SviVolatility(moneyness, a, b, sigma, rho, m);
+        //}
 
         /// <summary>
         /// SVI volatility model
         /// </summary>
         [ExcelFunction(Name = "VOLATILITY.SVI", Description = "Return previous week day")]
-        public static double SviVolatility2(double strike, double spot, double a, double b, double sigma, double rho, double m)
+        public static double SviVolatility(double strike, double spot, double a, double b, double sigma, double rho, double m)
         {
             double moneyness = Log(strike / spot);
-            return SviVolatility2(moneyness, a, b, sigma, rho, m);
+            return SviVolatility(moneyness, a, b, sigma, rho, m);
         }
 
         /// <summary>
