@@ -93,8 +93,8 @@ namespace Galaxy.VolManager.ViewModel
             _marketFeed = marketFeed;
             _dbManager = dbManager;
 
-            SelectedMinStrike = 2500;
-            SelectedMaxStrike = 4000;
+            SelectedMinStrike = 2000;
+            SelectedMaxStrike = 5000;
         }
 
         private void WindowLoaded(object o)
@@ -327,8 +327,8 @@ namespace Galaxy.VolManager.ViewModel
 
                 if (forwardPrice != 0)
                 {
-                    double time = Option.GetTimeToExpiration(DateTime.Today, data.Maturity);
-                    double modelVol = Option.SviVolatility2(data.Strike, forwardPrice, Param.A, Param.B, Param.Sigma, Param.Rho, Param.M);
+              //      double time = Option.GetTimeToExpiration(DateTime.Today, data.Maturity);
+                    double modelVol = Option.SviVolatility(data.Strike, forwardPrice, Param.A, Param.B, Param.Sigma, Param.Rho, Param.M);
 
                     ModelVolPoints.Add(new Point(data.Strike, modelVol));
                 }
