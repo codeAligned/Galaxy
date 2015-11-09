@@ -27,7 +27,6 @@ namespace Galaxy.VolManager.ViewModel
 
         #region Parameters
         private VolParam _param;
-        private VolParam _newParam;
 
         private readonly string _ttlogin = ConfigurationManager.AppSettings["Login"];
         private readonly string _ttPassword = ConfigurationManager.AppSettings["PassWord"];
@@ -56,7 +55,7 @@ namespace Galaxy.VolManager.ViewModel
 
         public ObservableCollection<Point> ImpliedVolPoints { get; }
         public ObservableCollection<Point> ModelVolPoints { get; }
-        public ObservableCollection<Point> NewModelVolPoints { get; }
+
 
         public List<VolatilityData> ImpliedVolData { get; }
         public List<double> _strikeList;
@@ -70,14 +69,7 @@ namespace Galaxy.VolManager.ViewModel
             set { _param = value; OnPropertyChanged(nameof(Param)); }
         }
 
-        public VolParam NewParam 
-         {
-            get { return _newParam; }
-            set { _newParam = value; }
-        }
-
         #endregion
-
         
         public VolManagerVM(IMarketFeed marketFeed, IDbManager dbManager)
         {
@@ -92,7 +84,6 @@ namespace Galaxy.VolManager.ViewModel
 
             ImpliedVolPoints = new ObservableCollection<Point>();
             ModelVolPoints = new ObservableCollection<Point>();
-            NewModelVolPoints = new ObservableCollection<Point>();
             AvailableMaturity = new ObservableCollection<DateTime>();
             ImpliedVolData = new List<VolatilityData>();
             _strikeList = new List<double>();
@@ -104,10 +95,7 @@ namespace Galaxy.VolManager.ViewModel
 
             SelectedMinStrike = 2500;
             SelectedMaxStrike = 4000;
-
-            NewParam = new VolParam();
         }
-
 
         private void WindowLoaded(object o)
         {
@@ -155,7 +143,6 @@ namespace Galaxy.VolManager.ViewModel
                 marketConnectionUp = false;
             }
         }
-
         
         private void InitializeTimer()
         {
@@ -210,9 +197,7 @@ namespace Galaxy.VolManager.ViewModel
                     ImpliedVolPoints.Add(new Point(val.Strike, val.Volatility));
                 }
             }
-
-            //DisplayModelVol();
-            DisplayNewModelVol();
+            DisplayModelVol();
         }
 
         private string GetOtmOptionType(int strike, double spot)
@@ -300,66 +285,7 @@ namespace Galaxy.VolManager.ViewModel
 
         private void FitCurve(object obj)
         {
-            OldFit();
-            NewFit();
-        }
 
-
-
-        private void OldFit()
-        {
-            string futureId = Option.GetNextFutureTtCode("FESX",SelectedMaturity);
-            string forwardId = Option.BuildForwardId("STXE",SelectedMaturity);
-
-            double forward;
-            if (_instrumentPriceSafeDico.TryGetValue(forwardId, out forward))
-            {
-                UpdateForwardPrices(forwardId, futureId);
-            }
-            
-            double timeToExpi = Option.GetTimeToExpiration(DateTime.Today, SelectedMaturity);
-
-            var x = new double[ImpliedVolPoints.Count];
-            var y = new double[ImpliedVolPoints.Count];
-
-            for (int i = 0; i < ImpliedVolPoints.Count; i++)
-            {
-                x[i] = ImpliedVolPoints[i].X;
-                y[i] = ImpliedVolPoints[i].Y;
-            }
-
-            double[] p = { 1, 1, 1, 1, 1, forward, timeToExpi };
-
-            // Parameter constraints
-            var param = new[] {     new LmParams(), 
-                                    new LmParams(),
-                                    new LmParams(),
-                                    new LmParams(),
-                                    new LmParams(),
-                                    new LmParams {isFixed = 1},  // Fix parameter 1
-                                    new LmParams {isFixed = 1}   // Fix parameter 1
-                                };
-
-            var result = new LmResult(p.Length);
-            const double error = 0.07;
-            var ey = new double[x.Length];
-            for (int i = 0; i < x.Length; i++)
-            {
-                ey[i] = error;
-            }
-
-            var v = new CustomUserVariable { X = x, Y = y, Ey = ey };
-            LmAlgo.Solve(FunctionModel.GatheralFunc, x.Length, p.Length, p, param, null, v, ref result);
-
-            Param.A = Math.Round(p[0],4);
-            Param.B = Math.Round(p[1], 4);
-            Param.Sigma = Math.Round(p[2], 4);
-            Param.Rho = Math.Round(p[3], 4);
-            Param.M = Math.Round(p[4], 4);
-        }
-
-        private void NewFit()
-        {
             string futureId = Option.GetNextFutureTtCode("FESX", SelectedMaturity);
             string forwardId = Option.BuildForwardId("STXE", SelectedMaturity);
 
@@ -379,55 +305,18 @@ namespace Galaxy.VolManager.ViewModel
 
             Parameter[] outParams = SVI.Fit(data, forward);
 
-           
 
-            NewParam.A = Math.Round(outParams[0].Value, 4);
-            NewParam.B = Math.Round(outParams[1].Value, 4);
-            NewParam.Rho = Math.Round(outParams[2].Value, 4);
-            NewParam.Sigma = Math.Round(outParams[3].Value, 4);
-            NewParam.M = Math.Round(outParams[4].Value, 4);
 
-            Console.WriteLine($"param a: {outParams[0].Value}");
-            Console.WriteLine($"param b: {outParams[1].Value}");
-            Console.WriteLine($"param rho: {outParams[2].Value}");
-            Console.WriteLine($"param sig: {outParams[3].Value}");
-            Console.WriteLine($"param m: {outParams[4].Value}");
+            Param.A = Math.Round(outParams[0].Value, 4);
+            Param.B = Math.Round(outParams[1].Value, 4);
+            Param.Rho = Math.Round(outParams[2].Value, 4);
+            Param.Sigma = Math.Round(outParams[3].Value, 4);
+            Param.M = Math.Round(outParams[4].Value, 4);
         }
 
-        //private void DisplayModelVol()
-        //{
-        //    ModelVolPoints.Clear();
-        //    foreach (var data in ImpliedVolData)
-        //    {
-        //        double forwardPrice;
-        //        if (_instrumentPriceSafeDico.TryGetValue(data.ForwardName, out forwardPrice))
-        //        {
-        //            UpdateForwardPrices(data.ForwardName, data.FutureName);
-        //        }
-        //        else
-        //        {
-        //            DateTime previousDay = Option.PreviousWeekDay(DateTime.Today);
-        //            double futureClose = _dbManager.GetSpotClose(previousDay, data.FutureName);
-        //            double forwardClose = Option.GetForwardClose(data.ForwardName, data.Maturity, futureClose);
-        //            double forwardBaseOffset = forwardClose - futureClose;
-        //            _fwdBaseOffsetDico.Add(data.ForwardName, forwardBaseOffset);
-        //            _instrumentPriceSafeDico.TryAdd(data.ForwardName, 0);
-        //            continue;
-        //        }
-
-        //        if (forwardPrice != 0)
-        //        {
-        //            double time = Option.GetTimeToExpiration(DateTime.Today, data.Maturity);
-        //            double modelVol = Option.SviVolatility(data.Strike, forwardPrice, Param.A, Param.B, Param.Sigma, Param.Rho,Param.M, time);
-
-        //            ModelVolPoints.Add(new Point(data.Strike, modelVol));
-        //        }
-        //    }         
-        //}
-
-        private void DisplayNewModelVol()
+        private void DisplayModelVol()
         {
-            NewModelVolPoints.Clear();
+            ModelVolPoints.Clear();
             foreach (var data in ImpliedVolData)
             {
                 double forwardPrice;
@@ -439,9 +328,9 @@ namespace Galaxy.VolManager.ViewModel
                 if (forwardPrice != 0)
                 {
                     double time = Option.GetTimeToExpiration(DateTime.Today, data.Maturity);
-                    double modelVol = Option.SviVolatility2(data.Strike, forwardPrice, NewParam.A, NewParam.B, NewParam.Sigma, NewParam.Rho, NewParam.M);
+                    double modelVol = Option.SviVolatility2(data.Strike, forwardPrice, Param.A, Param.B, Param.Sigma, Param.Rho, Param.M);
 
-                    NewModelVolPoints.Add(new Point(data.Strike, modelVol));
+                    ModelVolPoints.Add(new Point(data.Strike, modelVol));
                 }
             }
         }

@@ -58,11 +58,6 @@
     <Compile Include="GSVI.cs" />
     <Compile Include="InstrumentPosition.cs" />
     <Compile Include="LevenbergMarquardt.cs" />
-    <Compile Include="LmAlgo.cs" />
-    <Compile Include="LmConfig.cs" />
-    <Compile Include="LmDelimitedArray.cs" />
-    <Compile Include="LmParams.cs" />
-    <Compile Include="LmResult.cs" />
     <Compile Include="LUDecompositionResults.cs" />
     <Compile Include="Matrix.cs" />
     <Compile Include="MaturityData.cs" />
