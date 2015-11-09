@@ -68,7 +68,7 @@ namespace Galaxy.PricingService
         public double ObsFairPrice => Round(FairPrice, 2);
         public double ObsMtmPrice => Round(MtmPrice, 2);
         public double ObsForwardPrice => Round(ForwardPrice, 2);
-        public double UnrealisedPnl => MtmPrice != 0 ? Round(Quantity * LotSize * (MtmPrice - AvgPrice), 2) : 0;
+        public double UnrealisedPnl => MtmPrice != 0 ? Round(Quantity * LotSize * (MtmPrice - AvgPrice), 2) : Round(Quantity * LotSize * (FairPrice - AvgPrice), 2);
         public string ObsLatentPnl => UnrealisedPnl.ToString("N2");
         public string ObsRealisedPnl => RealisedPnl.ToString("N2");
         public double FairUnrealisedPnl => FairPrice != 0 ? Round(Quantity * LotSize * (FairPrice - AvgPrice), 2) : 0;
