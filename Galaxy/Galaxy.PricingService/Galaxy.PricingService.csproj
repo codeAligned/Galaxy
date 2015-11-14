@@ -59,7 +59,7 @@
     <Compile Include="LUDecompositionResults.cs" />
     <Compile Include="Matrix.cs" />
     <Compile Include="MaturityData.cs" />
-    <Compile Include="NR.cs" />
+    <Compile Include="NewtonRaphson.cs" />
     <Compile Include="Option.cs" />
     <Compile Include="Parameter.cs" />
     <Compile Include="Pnl.cs" />

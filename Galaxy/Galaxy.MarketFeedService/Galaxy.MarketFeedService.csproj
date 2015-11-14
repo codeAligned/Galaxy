@@ -57,7 +57,7 @@
     <Compile Include="InstruSubscription.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TTAPIArchitectureCheck.cs" />
-    <Compile Include="TTApi.cs" />
+    <Compile Include="MarketFeed.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

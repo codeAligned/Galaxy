@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Galaxy.DatabaseService", "G
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Galaxy.DealManager", "Galaxy.DealManager\Galaxy.DealManager.csproj", "{8DE44D3E-607D-4E50-A99B-784928FAE3CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Galaxy.MarketFeedService", "Galaxy.MarketFeedService\Galaxy.MarketFeedService.csproj", "{3195BD50-3873-49F6-B3A7-B29C4B1EC992}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Galaxy.Pipe", "Galaxy.Pipe\Galaxy.Pipe.csproj", "{BFDD6183-7369-47CA-84CD-9B1A26C4F7CD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Galaxy.PricingService", "Galaxy.PricingService\Galaxy.PricingService.csproj", "{3039E576-742D-42F7-A910-BD4C77E2EEA5}"
@@ -16,6 +14,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Galaxy.PricingService.Test", "Galaxy.PricingService.Test\Galaxy.PricingService.Test.csproj", "{324AF399-ABA1-402F-AF55-00C8A0EF2795}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Galaxy.VolManager", "Galaxy.VolManager\Galaxy.VolManager.csproj", "{0DEDEED1-5C10-470E-B82F-56CBDDD2586E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Galaxy.MarketFeedService", "Galaxy.MarketFeedService\Galaxy.MarketFeedService.csproj", "{3195BD50-3873-49F6-B3A7-B29C4B1EC992}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,10 +31,6 @@ Global
 		{8DE44D3E-607D-4E50-A99B-784928FAE3CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8DE44D3E-607D-4E50-A99B-784928FAE3CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8DE44D3E-607D-4E50-A99B-784928FAE3CA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3195BD50-3873-49F6-B3A7-B29C4B1EC992}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3195BD50-3873-49F6-B3A7-B29C4B1EC992}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3195BD50-3873-49F6-B3A7-B29C4B1EC992}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3195BD50-3873-49F6-B3A7-B29C4B1EC992}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BFDD6183-7369-47CA-84CD-9B1A26C4F7CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BFDD6183-7369-47CA-84CD-9B1A26C4F7CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BFDD6183-7369-47CA-84CD-9B1A26C4F7CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -51,6 +47,10 @@ Global
 		{0DEDEED1-5C10-470E-B82F-56CBDDD2586E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0DEDEED1-5C10-470E-B82F-56CBDDD2586E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0DEDEED1-5C10-470E-B82F-56CBDDD2586E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3195BD50-3873-49F6-B3A7-B29C4B1EC992}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3195BD50-3873-49F6-B3A7-B29C4B1EC992}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3195BD50-3873-49F6-B3A7-B29C4B1EC992}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3195BD50-3873-49F6-B3A7-B29C4B1EC992}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

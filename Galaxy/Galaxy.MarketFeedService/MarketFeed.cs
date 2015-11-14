@@ -9,7 +9,7 @@ using log4net;
 
 namespace Galaxy.MarketFeedService
 {
-    public class TTApi : IDisposable, IMarketFeed
+    public class MarketFeed : IDisposable, IMarketFeed
     {
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
@@ -43,7 +43,7 @@ namespace Galaxy.MarketFeedService
 
         private bool subscriptionstarted = false; 
 
-        public TTApi()
+        public MarketFeed()
         {
             _marketToSubscribe = new Dictionary<string, bool>();
             _productToSubscribe = new Dictionary<string, bool>();

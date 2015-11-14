@@ -136,7 +136,7 @@ namespace Pipe
                 double time = Option.GetTimeToExpiration(_previousDay, instru.MaturityDate);
                 
                 instru.ForwardPrice = Option.GetForwardClose(instru.ForwardId,instru.MaturityDate, futurepx);
-                instru.ModelVol = Option.SviVolatility(instru.Strike, instru.ForwardPrice, param.A, param.B, param.Sigma,param.Rho, param.M, time);
+                instru.ModelVol = Option.SviVolatility(instru.Strike, instru.ForwardPrice, param.A, param.B, param.Sigma,param.Rho, param.M);
                 instru.FairPrice = Option.BlackScholes(instru.OptionType, instru.ForwardPrice, instru.Strike, time,instru.ModelVol);
                 instru.Delta = instru.Quantity * Option.Delta(instru.OptionType, instru.ForwardPrice, instru.Strike, instru.ModelVol, time);
                 instru.Theta = instru.Quantity * instru.LotSize * Option.Theta(instru.OptionType, instru.ForwardPrice, instru.Strike, instru.ModelVol, time);

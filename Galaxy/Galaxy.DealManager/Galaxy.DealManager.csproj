@@ -221,7 +221,7 @@
       <Name>Galaxy.DatabaseService</Name>
     </ProjectReference>
     <ProjectReference Include="..\Galaxy.MarketFeedService\Galaxy.MarketFeedService.csproj">
-      <Project>{3195BD50-3873-49F6-B3A7-B29C4B1EC992}</Project>
+      <Project>{3195bd50-3873-49f6-b3a7-b29c4b1ec992}</Project>
       <Name>Galaxy.MarketFeedService</Name>
     </ProjectReference>
     <ProjectReference Include="..\Galaxy.PricingService\Galaxy.PricingService.csproj">

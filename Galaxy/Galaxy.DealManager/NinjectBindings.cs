@@ -13,7 +13,7 @@ namespace Galaxy.DealManager
     {
         public override void Load()
         {
-            Bind<IMarketFeed>().To<TTApi>();
+            Bind<IMarketFeed>().To<MarketFeed>();
             Bind<IDbManager>().To<DbManager>();
         }
     }

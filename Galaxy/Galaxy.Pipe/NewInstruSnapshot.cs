@@ -45,7 +45,7 @@ namespace Pipe
             _marketFeed.Connect(_ttlogin, _ttPassword, ConnectionStatusHandler, null, DataUpdateHandler);
             Instrument[] instruCollection = _dbManager.GetAllInstruments(DateTime.Today);
 
-            //wait 30sec to receive all the instruments info from TTApi
+            //wait 30sec to receive all the instruments info from MarketFeed
             _delay = DateTime.Now.AddSeconds(_delayTime);
             while (DateTime.Now < _delay)
             {

@@ -32,6 +32,8 @@ namespace Galaxy.DealManager.ViewModel
 
         private readonly string _ttlogin = ConfigurationManager.AppSettings["Login"];
         private readonly string _ttPassword = ConfigurationManager.AppSettings["PassWord"];
+        private readonly string _environment = ConfigurationManager.AppSettings["Environment"];
+        private readonly string _version = ConfigurationManager.AppSettings["Version"];
 
         private readonly IMarketFeed _marketFeed;
         private readonly IDbManager _dbManager;
@@ -51,6 +53,8 @@ namespace Galaxy.DealManager.ViewModel
 
         private bool marketConnectionUp = false;
 
+        
+
         #endregion
 
         #region Assessors
@@ -65,6 +69,8 @@ namespace Galaxy.DealManager.ViewModel
         public ICommand WindowsLoadedCmd { get; }
         public ICommand OpenSettleDealCmd { get; }
 
+
+        public string AppTitle { get; set; }
         public Action CloseAction { get; set; }
         public ObservableCollection<string> InstrumentNames { get; set; }
         private Instrument[] _instruments;
@@ -128,7 +134,9 @@ namespace Galaxy.DealManager.ViewModel
 
             _instrumentPriceSafeDico = new ConcurrentDictionary<string, double>();
             RowDoubleClickCmd = new DelegateCommand<object>(DisplayUpdateRmFormWin);
-            InstruViewClickCmd = new DelegateCommand<object>(DisplayDealView); 
+            InstruViewClickCmd = new DelegateCommand<object>(DisplayDealView);
+
+            AppTitle = $"Deal Manager {_version} {_environment}";
         }
 
         private void WindowLoaded(object o)
@@ -574,7 +582,7 @@ namespace Galaxy.DealManager.ViewModel
                         double time = Option.GetTimeToExpiration(DateTime.Today, pos.MaturityDate);
                         pos.ImpliedVol = Option.BlackScholesVol(targetOptionPrice, pos.ForwardPrice, pos.Strike, targetOptionType, time);
                         //pos.ModelVol = Option.SviVolatility(pos.Strike, pos.ForwardPrice, param.A,param.B,param.Sigma,param.Rho,param.M,time);
-                        pos.ModelVol = Option.SviVolatility2(pos.Strike, pos.ForwardPrice, param.A, param.B, param.Sigma, param.Rho, param.M);
+                        pos.ModelVol = Option.SviVolatility(pos.Strike, pos.ForwardPrice, param.A, param.B, param.Sigma, param.Rho, param.M);
                         pos.FairPrice = Option.BlackScholes(pos.OptionType, pos.ForwardPrice, pos.Strike, time,pos.ModelVol);
                         pos.Delta = pos.Quantity * Option.Delta(pos.OptionType, pos.ForwardPrice, pos.Strike, pos.ModelVol, time);
                         pos.StickyDelta = Option.DegueulasseDelta(pos.OptionType, pos.ForwardPrice, pos.ModelVol,pos.Strike, time, pos.Quantity, param.A, param.B, param.Sigma, param.Rho, param.M);

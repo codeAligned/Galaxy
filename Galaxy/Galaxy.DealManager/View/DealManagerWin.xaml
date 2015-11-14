@@ -4,7 +4,7 @@
     xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid" 
     xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
     x:Class="Galaxy.DealManager.View.DealManagerWin" 
-    Title="Deal Manager" Height="600" Width="1570" 
+    Title="{Binding AppTitle}" Height="600" Width="1570" 
     xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
     xmlns:dxr="http://schemas.devexpress.com/winfx/2008/xaml/ribbon"
     xmlns:dxb="http://schemas.devexpress.com/winfx/2008/xaml/bars"
