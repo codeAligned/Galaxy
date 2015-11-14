@@ -14,7 +14,6 @@ using Galaxy.DatabaseService;
 using Galaxy.MarketFeedService;
 using Galaxy.PricingService;
 using Galaxy.VolManager.Commands;
-using Galaxy.VolManager.Model;
 using log4net;
 using PricingLib;
 
@@ -30,6 +29,8 @@ namespace Galaxy.VolManager.ViewModel
 
         private readonly string _ttlogin = ConfigurationManager.AppSettings["Login"];
         private readonly string _ttPassword = ConfigurationManager.AppSettings["PassWord"];
+        private readonly string _environment = ConfigurationManager.AppSettings["Environment"];
+        private readonly string _version = ConfigurationManager.AppSettings["Version"];
 
         private readonly ConcurrentDictionary<string, double> _instrumentPriceSafeDico;
         private readonly Dictionary<string, double> _fwdBaseOffsetDico;
@@ -40,6 +41,10 @@ namespace Galaxy.VolManager.ViewModel
 
         private bool marketConnectionUp = false;
         public ObservableCollection<DateTime> AvailableMaturity { get; set; }
+
+        public string AppTitle { get; set; }
+
+        private Instrument[] _options;
 
         #endregion
 
@@ -56,8 +61,6 @@ namespace Galaxy.VolManager.ViewModel
         public ObservableCollection<Point> ImpliedVolPoints { get; }
         public ObservableCollection<Point> ModelVolPoints { get; }
 
-
-        public List<VolatilityData> ImpliedVolData { get; }
         public List<double> _strikeList;
 
         public DateTime SelectedMaturity { get; set; }
@@ -76,7 +79,7 @@ namespace Galaxy.VolManager.ViewModel
             var currentThread = Thread.CurrentThread;
             currentThread.Name = "UI Thread";
 
-            LoadVolCmd = new RelayCommand(LoadImpliedVolData);
+            LoadVolCmd = new RelayCommand(LoadData);
             FitCurveCmd = new  RelayCommand(FitCurve);
             WindowsLoadedCmd = new RelayCommand(WindowLoaded);
             InsertNewParamsCmd = new RelayCommand(InsertParamToDb);
@@ -85,7 +88,6 @@ namespace Galaxy.VolManager.ViewModel
             ImpliedVolPoints = new ObservableCollection<Point>();
             ModelVolPoints = new ObservableCollection<Point>();
             AvailableMaturity = new ObservableCollection<DateTime>();
-            ImpliedVolData = new List<VolatilityData>();
             _strikeList = new List<double>();
             _instrumentPriceSafeDico = new ConcurrentDictionary<string, double>();
             _fwdBaseOffsetDico = new Dictionary<string, double>();
@@ -95,6 +97,8 @@ namespace Galaxy.VolManager.ViewModel
 
             SelectedMinStrike = 2000;
             SelectedMaxStrike = 5000;
+
+            AppTitle = $"Volatility Manager {_version} {_environment}";
         }
 
         private void WindowLoaded(object o)
@@ -146,59 +150,28 @@ namespace Galaxy.VolManager.ViewModel
         
         private void InitializeTimer()
         {
-            DispatcherTimer fastTimer = new DispatcherTimer {Interval = TimeSpan.FromSeconds(1)};
+            DispatcherTimer fastTimer = new DispatcherTimer {Interval = TimeSpan.FromSeconds(2)};
             fastTimer.Tick += RefreshRtData;
             fastTimer.Start();
         }
 
         private void RefreshRtData(object sender, EventArgs e)
         {
-            if(ImpliedVolData.Count == 0 || !marketConnectionUp)
+            if ( !marketConnectionUp)
             {
                 return;
             }
 
-            foreach (VolatilityData option in ImpliedVolData)
+            if (_options == null || _options.Length == 0 || string.IsNullOrEmpty(SelectedProduct) || SelectedMaturity == DateTime.MinValue)
             {
-                // if forward already computed
-                double forwardPrice;
-                if (_instrumentPriceSafeDico.TryGetValue(option.ForwardName, out forwardPrice))
-                {
-                    UpdateForwardPrices(option.ForwardName, option.FutureName);
-                }
-                else
-                {
-                // if new forward: compute base offset
-                    DateTime previousDay = Option.PreviousWeekDay(DateTime.Today);
-                    double futureClose = _dbManager.GetSpotClose(previousDay, option.FutureName);
-                    double forwardClose = Option.GetForwardClose(option.ForwardName, option.Maturity, futureClose);
-                    double forwardBaseOffset = forwardClose - futureClose;
-                    _fwdBaseOffsetDico.Add(option.ForwardName, forwardBaseOffset);
-                    _instrumentPriceSafeDico.TryAdd(option.ForwardName, 0);
-                    continue;
-                }
-                
-                if (forwardPrice != 0)
-                {
-                // Compute implied volatility
-                    string targetOptionType = GetOtmOptionType(option.Strike, forwardPrice);
-                    double targetOptionPrice = GetOutTheMoneyOptionPrice(option, targetOptionType);
-                    double timeLeft = Option.GetTimeToExpiration(DateTime.Today, option.Maturity);
-                    option.Volatility = Option.BlackScholesVol(targetOptionPrice, forwardPrice, option.Strike, targetOptionType, timeLeft);
-                }
+             //   MessageBox.Show("Select product and maturity");
+                return;
             }
 
-            //Refresh observable collection of points
-            ImpliedVolPoints.Clear();
-            foreach (VolatilityData val in ImpliedVolData)
-            {
-                if (val.Volatility != 0)
-                {
-                    ImpliedVolPoints.Add(new Point(val.Strike, val.Volatility));
-                }
-            }
-            DisplayModelVol();
+            LoadImpliedVol(false);
+            LoadModelVol(false);
         }
+
 
         private string GetOtmOptionType(int strike, double spot)
         {
@@ -215,39 +188,24 @@ namespace Galaxy.VolManager.ViewModel
             return "CALL";     //Target price: Call OTM
         }
 
-
         // For a specific strike and maturity, we use the option(call or put) which is out of the money
         // this methode is in charge to retreive the current option ric out of the money 
-        private double GetOutTheMoneyOptionPrice(VolatilityData pos, string optionType)
+        private double GetOutTheMoneyOptionPrice(Instrument pos, string optionType)
         {
             // build option tt code
-            string targetOptionTtCode = Option.GetOptionTtCode(pos.ProductName, optionType, pos.Maturity, pos.Strike);
+            string targetOptionTtCode = Option.GetOptionTtCode(pos.ProductId, optionType, pos.MaturityDate, pos.Strike.Value);
             // get or suscribe option price
             double targetOptionPrice;
             if (!_instrumentPriceSafeDico.TryGetValue(targetOptionTtCode, out targetOptionPrice))
             {
-                _marketFeed.SuscribeToInstrumentPrice(targetOptionTtCode, pos.ProductType, pos.ProductName, pos.Market, "Mid");
+                _marketFeed.SuscribeToInstrumentPrice(targetOptionTtCode, pos.Product.ProductType, pos.ProductId, pos.Product.Market, "Mid");
                 _instrumentPriceSafeDico.TryAdd(targetOptionTtCode, 0);
             }
 
             return targetOptionPrice;
         }
 
-        // compute forward price based on future price and base offset
-        private void UpdateForwardPrices(string forwardRic, string futureTtCode)
-        {
-            double spotPrice;
-            if (_instrumentPriceSafeDico.TryGetValue(futureTtCode, out spotPrice) && spotPrice != 0)
-            {
-                double baseofset;
-                if (_fwdBaseOffsetDico.TryGetValue(forwardRic, out baseofset) && baseofset != -1 && spotPrice != 0)
-                {
-                    _instrumentPriceSafeDico[forwardRic] = spotPrice + baseofset;
-                }
-            }
-        }
-
-        private void LoadImpliedVolData(object obj)
+        private void LoadData(object obj)
         {
             if(string.IsNullOrEmpty(SelectedProduct) || SelectedMaturity == DateTime.MinValue)
             {
@@ -255,30 +213,84 @@ namespace Galaxy.VolManager.ViewModel
                 return;
             }
 
-            string futureId = Option.GetNextFutureTtCode("FESX", SelectedMaturity);
+            //Task impliedVolTask = new Task(LoadImpliedVol);
+            //impliedVolTask.Start();
+            //impliedVolTask.Wait();
 
-            _marketFeed.SuscribeToInstrumentPrice(futureId, "FUTURE", "FESX", "Eurex","Mid");
-            _instrumentPriceSafeDico.TryAdd(futureId, 0);
+            LoadImpliedVol(true);
+            LoadModelVol(true);
 
-            Param = _dbManager.GetVolParams(SelectedProduct, SelectedMaturity);
+            //Task modelVolTask = new Task(LoadModelVol);
+            //modelVolTask.Start();
+            //modelVolTask.Wait();
+        }
 
-            Instrument[] options = _dbManager.GetCallOptions(SelectedProduct, SelectedMaturity);
-
-            ImpliedVolData.Clear();
-            foreach (var option in options)
+        private void LoadImpliedVol(bool reloadData)
+        {
+            if (reloadData)
             {
-                DateTime maturity = option.MaturityDate;
-                string productName = option.ProductId;
-                int strike = option.Strike ?? 0;
-                string  productType = option.Product.ProductType;
-                string market = option.Product.Market;
-                string exerciseType = option.Product.ExerciseType;
-                string underlyingName = option.RefForwardId;
-                string futureName = option.RefFutureId; 
+                Product underlying = _dbManager.GetUnderlying(SelectedProduct);
+                string futureId = Option.GetNextFutureTtCode(underlying.Id, SelectedMaturity);
 
-                if(strike >= SelectedMinStrike && strike<= SelectedMaxStrike)
+                // suscribe to future price feed
+                if (!_instrumentPriceSafeDico.ContainsKey(futureId))
                 {
-                    ImpliedVolData.Add(new VolatilityData(strike, maturity, productType, productName, market, exerciseType, underlyingName, futureName));
+                    _marketFeed.SuscribeToInstrumentPrice(futureId, underlying.ProductType, underlying.Id, underlying.Market, "Mid");
+                    _instrumentPriceSafeDico.TryAdd(futureId, 0);
+                }
+
+                _options = _dbManager.GetCallOptions(SelectedProduct, SelectedMaturity);
+
+            }
+
+            ImpliedVolPoints.Clear();
+            foreach (var data in _options)
+            {
+                
+                if(data.Strike.Value < SelectedMinStrike || data.Strike.Value > SelectedMaxStrike)
+                    continue;
+
+                double forwardPrice = GetForwardPrice(data);
+
+                if (forwardPrice != 0)
+                {
+                    // Compute implied volatility
+                    string targetOptionType = GetOtmOptionType(data.Strike.Value, forwardPrice);
+                    double targetOptionPrice = GetOutTheMoneyOptionPrice(data, targetOptionType);
+                    double timeLeft = Option.GetTimeToExpiration(DateTime.Today, data.MaturityDate);
+                    double volatility = Option.BlackScholesVol(targetOptionPrice, forwardPrice, data.Strike.Value, targetOptionType, timeLeft);
+
+                    if (volatility != 0)
+                    {
+                        ImpliedVolPoints.Add(new Point(data.Strike.Value, volatility));
+                    }
+                }
+            }
+        }
+
+        private void LoadModelVol(bool reloadData)
+        {
+            if (reloadData)
+            {
+                // retrieve fit params form db
+                Param = _dbManager.GetVolParams(SelectedProduct, SelectedMaturity);
+                //   Dispatcher.CurrentDispatcher.Invoke(() => ModelVolPoints.Clear());
+            }
+
+            ModelVolPoints.Clear();
+
+            foreach (var data in _options)
+            {
+                if (data.Strike.Value < SelectedMinStrike || data.Strike.Value > SelectedMaxStrike)
+                    continue;
+
+                double forwardPrice = GetForwardPrice(data);
+                
+                if (forwardPrice != 0)
+                {
+                    double modelVol = Option.SviVolatility(data.Strike.Value, forwardPrice, Param.A, Param.B, Param.Sigma, Param.Rho, Param.M);
+              //      Dispatcher.CurrentDispatcher.Invoke(() => ModelVolPoints.Add(new Point(data.Strike.Value, modelVol)));
+                    ModelVolPoints.Add(new Point(data.Strike.Value, modelVol));
                 }
             }
         }
@@ -305,8 +317,6 @@ namespace Galaxy.VolManager.ViewModel
 
             Parameter[] outParams = SVI.Fit(data, forward);
 
-
-
             Param.A = Math.Round(outParams[0].Value, 4);
             Param.B = Math.Round(outParams[1].Value, 4);
             Param.Rho = Math.Round(outParams[2].Value, 4);
@@ -314,23 +324,38 @@ namespace Galaxy.VolManager.ViewModel
             Param.M = Math.Round(outParams[4].Value, 4);
         }
 
-        private void DisplayModelVol()
+
+        private double GetForwardPrice(Instrument data)
         {
-            ModelVolPoints.Clear();
-            foreach (var data in ImpliedVolData)
+            double forwardPrice;
+            if (_instrumentPriceSafeDico.TryGetValue(data.RefForwardId, out forwardPrice))
             {
-                double forwardPrice;
-                if (_instrumentPriceSafeDico.TryGetValue(data.ForwardName, out forwardPrice))
-                {
-                    UpdateForwardPrices(data.ForwardName, data.FutureName);
-                }
+                UpdateForwardPrices(data.RefForwardId, data.RefFutureId);
+                return forwardPrice;
+            }
+            else
+            {
+                // if new forward: compute base offset
+                DateTime previousDay = Option.PreviousWeekDay(DateTime.Today);
+                double futureClose = _dbManager.GetSpotClose(previousDay, data.RefFutureId);
+                double forwardClose = Option.GetForwardClose(data.RefForwardId, data.MaturityDate, futureClose);
+                double forwardBaseOffset = forwardClose - futureClose;
+                _fwdBaseOffsetDico.Add(data.RefForwardId, forwardBaseOffset);
+                _instrumentPriceSafeDico.TryAdd(data.RefForwardId, 0);
+                return 0;
+            }
+        }
 
-                if (forwardPrice != 0)
+        // compute forward price based on future price and base offset
+        private void UpdateForwardPrices(string forwardId, string futureId)
+        {
+            double spotPrice;
+            if (_instrumentPriceSafeDico.TryGetValue(futureId, out spotPrice) && spotPrice != 0)
+            {
+                double baseofset;
+                if (_fwdBaseOffsetDico.TryGetValue(forwardId, out baseofset) && baseofset != -1 && spotPrice != 0)
                 {
-              //      double time = Option.GetTimeToExpiration(DateTime.Today, data.Maturity);
-                    double modelVol = Option.SviVolatility(data.Strike, forwardPrice, Param.A, Param.B, Param.Sigma, Param.Rho, Param.M);
-
-                    ModelVolPoints.Add(new Point(data.Strike, modelVol));
+                    _instrumentPriceSafeDico[forwardId] = spotPrice + baseofset;
                 }
             }
         }

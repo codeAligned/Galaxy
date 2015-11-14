@@ -209,6 +209,28 @@ namespace Galaxy.DatabaseService
             }
         }
 
+        public Product GetUnderlying(string productRef)
+        {
+            using (var db = new DevDbContext())
+            {
+                var query = from a in db.Product
+                            let ces = from ce in db.Product
+                                      where ce.Id == productRef
+                                      select ce.Underlying
+                            where ces.Contains(a.Id)
+                            select a;
+
+                Product[] products = query.ToArray();
+
+                if (products.Length != 1)
+                {
+                    log.Error($" {productRef} is missing");
+                    return null;
+                }
+                return products[0];
+            }
+        }
+
         public Instrument[] GetCallOptions(string productId, DateTime maturity)
         {
             using (var db = new DevDbContext())

@@ -9,7 +9,7 @@
     xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
     xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol" 
     x:Class="Galaxy.VolManager.VolManagerWin"
-    Title="Volatility Manager" Height="600" Width="1200"
+    Title="{Binding AppTitle}" Height="600" Width="1200"
     SnapsToDevicePixels="True" UseLayoutRounding="True">
 
     <dxmvvm:Interaction.Behaviors>

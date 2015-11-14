@@ -33,5 +33,6 @@ namespace Galaxy.DatabaseService
         Dictionary<string, double> GetAllClosePrices(DateTime asOfDate);
         string[] GetDailyReportMailingList();
         Deal[] GetIntradayDeals(DateTime bookingDate);
+        Product GetUnderlying(string productRef);
     }
 }

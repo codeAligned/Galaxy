@@ -27,6 +27,7 @@ namespace Galaxy.DatabaseService
         public int StrikeBase { get; set; }
         public string ProductType { get; set; }
         public string ExerciseType { get; set; }
+        public string Underlying { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Instrument> Instruments { get; set; }
