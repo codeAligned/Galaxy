@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
+using DevExpress.Data.Export;
 using Galaxy.DatabaseService;
 using Galaxy.MarketFeedService;
 using Galaxy.PricingService;
@@ -26,6 +27,8 @@ namespace Galaxy.VolManager.ViewModel
 
         #region Parameters
         private VolParam _param;
+        private double _mad;
+        private double _leastSquare;
 
         private readonly string _ttlogin = ConfigurationManager.AppSettings["Login"];
         private readonly string _ttPassword = ConfigurationManager.AppSettings["PassWord"];
@@ -45,6 +48,9 @@ namespace Galaxy.VolManager.ViewModel
         public string AppTitle { get; set; }
 
         private Instrument[] _options;
+
+        string _futureId;
+        string _forwardId;
 
         #endregion
 
@@ -70,6 +76,18 @@ namespace Galaxy.VolManager.ViewModel
         {
             get { return _param; }
             set { _param = value; OnPropertyChanged(nameof(Param)); }
+        }
+
+        public double Mad
+        {
+            get { return _mad; }
+            set { _mad = value; OnPropertyChanged(nameof(Mad)); }
+        }
+
+        public double LeastSquare
+        {
+            get { return _leastSquare; }
+            set { _leastSquare = value; OnPropertyChanged(nameof(LeastSquare)); }
         }
 
         #endregion
@@ -170,6 +188,8 @@ namespace Galaxy.VolManager.ViewModel
 
             LoadImpliedVol(false);
             LoadModelVol(false);
+            ComputeFitError();
+
         }
 
 
@@ -213,12 +233,16 @@ namespace Galaxy.VolManager.ViewModel
                 return;
             }
 
+            _futureId = Option.GetNextFutureTtCode("FESX", SelectedMaturity);
+            _forwardId = Option.BuildForwardId("STXE", SelectedMaturity);
+
             //Task impliedVolTask = new Task(LoadImpliedVol);
             //impliedVolTask.Start();
             //impliedVolTask.Wait();
 
             LoadImpliedVol(true);
             LoadModelVol(true);
+            
 
             //Task modelVolTask = new Task(LoadModelVol);
             //modelVolTask.Start();
@@ -230,13 +254,12 @@ namespace Galaxy.VolManager.ViewModel
             if (reloadData)
             {
                 Product underlying = _dbManager.GetUnderlying(SelectedProduct);
-                string futureId = Option.GetNextFutureTtCode(underlying.Id, SelectedMaturity);
 
                 // suscribe to future price feed
-                if (!_instrumentPriceSafeDico.ContainsKey(futureId))
+                if (!_instrumentPriceSafeDico.ContainsKey(_futureId))
                 {
-                    _marketFeed.SuscribeToInstrumentPrice(futureId, underlying.ProductType, underlying.Id, underlying.Market, "Mid");
-                    _instrumentPriceSafeDico.TryAdd(futureId, 0);
+                    _marketFeed.SuscribeToInstrumentPrice(_futureId, underlying.ProductType, underlying.Id, underlying.Market, "Mid");
+                    _instrumentPriceSafeDico.TryAdd(_futureId, 0);
                 }
 
                 _options = _dbManager.GetCallOptions(SelectedProduct, SelectedMaturity);
@@ -250,7 +273,7 @@ namespace Galaxy.VolManager.ViewModel
                 if(data.Strike.Value < SelectedMinStrike || data.Strike.Value > SelectedMaxStrike)
                     continue;
 
-                double forwardPrice = GetForwardPrice(data);
+                double forwardPrice = GetForwardPrice(data.RefForwardId,data.RefFutureId,data.MaturityDate);
 
                 if (forwardPrice != 0)
                 {
@@ -284,7 +307,7 @@ namespace Galaxy.VolManager.ViewModel
                 if (data.Strike.Value < SelectedMinStrike || data.Strike.Value > SelectedMaxStrike)
                     continue;
 
-                double forwardPrice = GetForwardPrice(data);
+                double forwardPrice = GetForwardPrice(data.RefForwardId, data.RefFutureId, data.MaturityDate);
                 
                 if (forwardPrice != 0)
                 {
@@ -295,16 +318,35 @@ namespace Galaxy.VolManager.ViewModel
             }
         }
 
+        private void ComputeFitError()
+        {
+            double forwardPrice = GetForwardPrice(_forwardId, _futureId, SelectedMaturity);
+            double sumError = 0;
+            double sumErrorSquared = 0;
+
+            if (forwardPrice == 0)
+                return;
+
+            foreach (var points in ImpliedVolPoints)
+            {
+                double strike = points.X;
+                double impliedVol = points.Y;
+                double modelVol = Option.SviVolatility(strike, forwardPrice, Param.A, Param.B, Param.Sigma, Param.Rho, Param.M);
+
+                sumError += Math.Abs(impliedVol - modelVol);
+                sumErrorSquared += Math.Pow(impliedVol - modelVol, 2);
+            }
+            // Mean absolute deviation
+            Mad =  Math.Round( sumError/ImpliedVolPoints.Count,4);
+            LeastSquare = Math.Round(sumErrorSquared/ImpliedVolPoints.Count, 4);
+        }
+
         private void FitCurve(object obj)
         {
-
-            string futureId = Option.GetNextFutureTtCode("FESX", SelectedMaturity);
-            string forwardId = Option.BuildForwardId("STXE", SelectedMaturity);
-
             double forward;
-            if (_instrumentPriceSafeDico.TryGetValue(forwardId, out forward))
+            if (_instrumentPriceSafeDico.TryGetValue(_forwardId, out forward))
             {
-                UpdateForwardPrices(forwardId, futureId);
+                UpdateForwardPrices(_forwardId, _futureId);
             }
 
             double[,] data = new double[ImpliedVolPoints.Count, 2];
@@ -325,25 +367,24 @@ namespace Galaxy.VolManager.ViewModel
         }
 
 
-        private double GetForwardPrice(Instrument data)
+        //private double GetForwardPrice(Instrument data)
+        private double GetForwardPrice(string forwardId, string futureId, DateTime maturity)
         {
             double forwardPrice;
-            if (_instrumentPriceSafeDico.TryGetValue(data.RefForwardId, out forwardPrice))
+            if (_instrumentPriceSafeDico.TryGetValue(forwardId, out forwardPrice))
             {
-                UpdateForwardPrices(data.RefForwardId, data.RefFutureId);
+                UpdateForwardPrices(forwardId, futureId);
                 return forwardPrice;
             }
-            else
-            {
-                // if new forward: compute base offset
-                DateTime previousDay = Option.PreviousWeekDay(DateTime.Today);
-                double futureClose = _dbManager.GetSpotClose(previousDay, data.RefFutureId);
-                double forwardClose = Option.GetForwardClose(data.RefForwardId, data.MaturityDate, futureClose);
-                double forwardBaseOffset = forwardClose - futureClose;
-                _fwdBaseOffsetDico.Add(data.RefForwardId, forwardBaseOffset);
-                _instrumentPriceSafeDico.TryAdd(data.RefForwardId, 0);
-                return 0;
-            }
+
+            // if new forward: compute base offset
+            DateTime previousDay = Option.PreviousWeekDay(DateTime.Today);
+            double futureClose = _dbManager.GetSpotClose(previousDay, futureId);
+            double forwardClose = Option.GetForwardClose(forwardId, maturity, futureClose);
+            double forwardBaseOffset = forwardClose - futureClose;
+            _fwdBaseOffsetDico.Add(forwardId, forwardBaseOffset);
+            _instrumentPriceSafeDico.TryAdd(forwardId, 0);
+            return 0;
         }
 
         // compute forward price based on future price and base offset

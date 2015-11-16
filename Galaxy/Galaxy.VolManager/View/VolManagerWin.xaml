@@ -60,6 +60,7 @@
                     <dxd:LayoutPanel Caption="Vol Parameter" ItemWidth="3*" AllowClose="False">
 
                         <dxlc:LayoutGroup Orientation="Vertical">
+                            
                             <dxlc:LayoutGroup >
                                 <dxlc:LayoutGroup Orientation="Vertical" Margin="10,0,10,0">
                                     <dxlc:LayoutItem Label="a (DB):" >
@@ -85,10 +86,22 @@
                                     <dxlc:LayoutItem Label="m (DB):" >
                                         <dxe:TextEdit Text="{Binding Param.M}" Width="80" HorizontalAlignment="Right"/>
                                     </dxlc:LayoutItem>
-
                                 </dxlc:LayoutGroup>
                             </dxlc:LayoutGroup>
-                            
+
+                            <dxlc:LayoutGroup>
+                                <dxlc:LayoutGroup Orientation="Vertical" Margin="10,0,10,0">
+                                    <dxlc:LayoutItem Label="Mean absolut deviation (MAD):" >
+                                        <dxe:TextEdit Text="{Binding Mad}" Width="80" HorizontalAlignment="Left"/>
+                                    </dxlc:LayoutItem>
+                                </dxlc:LayoutGroup>
+                                <dxlc:LayoutGroup Orientation="Vertical" Margin="10,0,10,0">
+                                    <dxlc:LayoutItem Label="Least Square:" >
+                                        <dxe:TextEdit Text="{Binding LeastSquare}" Width="80" HorizontalAlignment="Left"/>
+                                    </dxlc:LayoutItem>
+                                </dxlc:LayoutGroup>
+                            </dxlc:LayoutGroup>
+
                             <dxlc:LayoutGroup>
                                 <dxlc:LayoutItem >
                                     <Button Margin="120,10,120,10" Content="Fit Curve" Command="{Binding Path=FitCurveCmd}"/>
@@ -97,7 +110,9 @@
                                     <Button Margin="120,10,120,10" Content="Insert New Params" Command="{Binding Path=InsertNewParamsCmd}" />
                                 </dxlc:LayoutItem>
                             </dxlc:LayoutGroup>
+
                         </dxlc:LayoutGroup>
+                        
                     </dxd:LayoutPanel>
                 </dxd:LayoutGroup>
                 <dxd:LayoutPanel Caption="DetailView" ItemHeight="2*" AllowClose="False">
