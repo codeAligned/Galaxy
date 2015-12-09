@@ -1,50 +1,63 @@
 ﻿import shutil 
 import os
+import xml.etree.cElementTree as etree
+import time
 
-appName = 'HelloWorld.exe'
-folderName = 'App'
-dstFolderName = 'MyApp'
-remotePath = r'SharedDrive'
-localPath = r'LocalDrive'
+appName = 'Galaxy.DealManager.exe'
+remotePath = r'v:\PROD\DealManager\Binary'
+localPath = r'c:\Homeware\PROD\DealManager\Binary'
 
-def CopyLast():
-    print('Copy last version ')
-    shutil.copytree(srcPath, dstPath)
+def CopyLatest():
+    print('Copy latest version ')
+    shutil.copytree(remotePath, localPath)
     return
 
 def UpdateVersion():
     print('Remove local version ')
-    shutil.rmtree(dstPath)
-    CopyLast()
+    shutil.rmtree(localPath)
+    CopyLatest()
     return
 
-def LoadVersionNb(versionPath):
-    srcFile = open(versionPath)
-    versionNb = srcFile.readline()
-    srcFile.close()
-    return versionNb
+def LoadXmlElement(configFile, elementName):
+    tree = etree.parse(configFile)
+    root = tree.getroot()
 
+    for neighbor in root.iter('add'):
+        key = neighbor.get('key')
+        value = neighbor.get('value')
+        if(key == elementName):
+            return value
+    return ''
 
 print('Deploy ' + appName + ' in progress...')
-srcPath = os.path.join(remotePath,folderName)
-dstPath = os.path.join(localPath,dstFolderName)
-srcVersionFile = os.path.join(srcPath,'version.txt')
-dstVersionFile = os.path.join(dstPath,'version.txt')
 
-if (os.path.exists(dstPath) == False):
-    CopyLast()
+if (os.path.exists(remotePath) == False):
+    print('Enable to find the app to deploy ')
+    time.sleep(5)
+    quit()
+
+if (os.path.exists(localPath) == False):
+    CopyLatest()
 else:
-	if(os.path.exists(srcVersionFile) == False or os.path.exists(dstVersionFile) == False):
-		UpdateVersion()
-	else:
-		srcVersion = LoadVersionNb(srcVersionFile)
-		print('Last version: ' + srcVersion)
-		dstVersion = LoadVersionNb(dstVersionFile)
-		print('Your version: ' + dstVersion)
-		if(srcVersion != dstVersion):
-			UpdateVersion()
+    srcVersionFile = os.path.join(remotePath,'Galaxy.DealManager.exe.config')
+    dstVersionFile = os.path.join(localPath,'Galaxy.DealManager.exe.config')
+    if(os.path.exists(srcVersionFile) == False or os.path.exists(dstVersionFile) == False):
+        print('Enable to find the app config file')
+        time.sleep(5)
+        quit()
+    else:
+        srcVersion = LoadXmlElement(srcVersionFile, 'Version')
+        print('Last version: ' + srcVersion)
+        dstVersion = LoadXmlElement(dstVersionFile, 'Version')
+        print('Your version: ' + dstVersion)
+        if(srcVersion == '' or dstVersion == '' or srcVersion != dstVersion):
+            UpdateVersion()
+        else:
+            print('current version up to date')
 
 # Start program
-print ('Start ' + folderName ) 
-os.chdir(dstPath)
+print ('Start ' + appName ) 
+os.chdir(localPath)
 os.startfile(appName)
+time.sleep(5)
+quit()
