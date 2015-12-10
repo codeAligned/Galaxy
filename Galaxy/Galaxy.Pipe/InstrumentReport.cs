@@ -187,10 +187,10 @@ namespace Pipe
         {
             using (StreamWriter writer = new StreamWriter(filePath))
             {
-                writer.WriteLine("InstruRic,Option Type,Strike,Maturity,Quantity,LotSize,AvgPrice,ClosePrice,Realised P&L,Unrealized P&L,ForwardPrice,Model Vol,Delta,Theta,Rho,Vega,Gamma,Vanna,Vomma,Charm,Veta,Color,Ultima,Speed");
+                writer.WriteLine("InstruRic,Option Type,Strike,Maturity,Quantity,LotSize,AvgPrice,ClosePrice,Realised P&L,Unrealized P&L,ForwardPrice,Model Vol,Delta,Gamma,Vega,Theta,Vanna,Volga,Charm,Veta,Color,Speed,Ultima");
                 foreach (var pos in posDico.Values)
                 {
-                    writer.WriteLine($"{pos.InstruRic},{pos.OptionType},{pos.Strike},{pos.MaturityDate.ToString("d")},{pos.Quantity},{pos.LotSize},{pos.AvgPrice},{pos.MtmPrice},{pos.RealisedPnl},{pos.UnrealisedPnl},{pos.ForwardPrice},{pos.ModelVol},{pos.Delta},{pos.Theta},{pos.Rho},{pos.Vega},{pos.Gamma},{pos.Vanna},{pos.Vomma},{pos.Charm},{pos.Veta},{pos.Color},{pos.Ultima},{pos.Speed}");
+                    writer.WriteLine($"{pos.InstruRic},{pos.OptionType},{pos.Strike},{pos.MaturityDate.ToString("d")},{pos.Quantity},{pos.LotSize},{pos.AvgPrice},{pos.MtmPrice},{pos.RealisedPnl},{pos.UnrealisedPnl},{pos.ForwardPrice},{pos.ModelVol},{pos.Delta},{pos.Gamma},{pos.Vega},{pos.Theta},{pos.Vanna},{pos.Vomma},{pos.Charm},{pos.Veta},{pos.Color},{pos.Speed},{pos.Ultima}");
                 }
             }
         }
