@@ -41,7 +41,15 @@ namespace Pipe
         /// </summary>
         public void Start()
         {
-        
+
+            //Check Database connection
+            if (!_dbManager.TestConnection())
+            {
+                Console.WriteLine("Enable to access to database. Check VPN connection");
+                Console.ReadLine();
+                return;
+            }
+
             _marketFeed.Connect(_ttlogin, _ttPassword, ConnectionStatusHandler, null, DataUpdateHandler);
             Instrument[] instruCollection = _dbManager.GetAllInstruments(DateTime.Today);
 
@@ -129,7 +137,7 @@ namespace Pipe
             _delay = DateTime.Now.AddSeconds(_delayTime);
             if (productType == "FUTURE")
             {
-                DateTime nextMaturity = DateTime.Today.AddMonths(_nbOfExpi + 3);
+                DateTime nextMaturity = DateTime.Today.AddMonths(_nbOfExpi + 4);
                 if (maturity > nextMaturity)
                 {
                     return;
