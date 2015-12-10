@@ -4,6 +4,8 @@ import xml.etree.cElementTree as etree
 import time
 
 appName = 'Galaxy.DealManager.exe'
+configFileName = 'Galaxy.DealManager.exe.config'
+# remotePath = r'Binary'
 remotePath = r'v:\PROD\DealManager\Binary'
 localPath = r'c:\Homeware\PROD\DealManager\Binary'
 
@@ -39,8 +41,8 @@ if (os.path.exists(remotePath) == False):
 if (os.path.exists(localPath) == False):
     CopyLatest()
 else:
-    srcVersionFile = os.path.join(remotePath,'Galaxy.DealManager.exe.config')
-    dstVersionFile = os.path.join(localPath,'Galaxy.DealManager.exe.config')
+    srcVersionFile = os.path.join(remotePath,configFileName)
+    dstVersionFile = os.path.join(localPath,configFileName)
     if(os.path.exists(srcVersionFile) == False or os.path.exists(dstVersionFile) == False):
         print('Enable to find the app config file')
         time.sleep(5)
