@@ -10,7 +10,6 @@ namespace Galaxy.PricingService
 {
     public static class Option
     {
-        public static PricingLib.Derivatives _derivatives;
         private const double _timeBasis = 365;
         private const int _strikeBase = 50;
 
@@ -24,6 +23,12 @@ namespace Galaxy.PricingService
             _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
             _forwardCloseDico = new Dictionary<string, double>();
             _dbManager = new DbManager();
+        }
+
+        [ExcelFunction(Name = "TEST", Description = "Test for excel dna fonction")]
+        public static string TestExcelDna(string testString)
+        {
+            return "Value: " + testString;
         }
 
         [ExcelFunction(Name = "GREEK.DELTA.CALL", Description = "Delta for call option")]
@@ -61,29 +66,30 @@ namespace Galaxy.PricingService
             throw e;
         }
 
-        [ExcelFunction(Name = "GREEK.DELTASMILE", Description = "Delta for option")]
-        public static double DeltaSmile(string optionType, double spot, double strike, double volatility, double time, double[] pointsVol,
-                                            [ExcelArgument(Description = "Optional")] double riskFreeRate = 0,
-                                            [ExcelArgument(Description = "Optional")] double dividend = 0)
-        {
-            _derivatives = new PricingLib.Derivatives(pointsVol.GetLength(0));
-            if (optionType == "CALL")
-            {
-                return CallDelta(spot, strike, volatility, time, riskFreeRate, dividend) + Vega(spot, strike, volatility, time, riskFreeRate, dividend) * _derivatives.ComputeDerivative(pointsVol, 1, 0, 25);
-            }
-            if (optionType == "PUT")
-            {
-                return PutDelta(spot, strike, volatility, time, riskFreeRate, dividend) + Vega(spot, strike, volatility, time, riskFreeRate, dividend) * _derivatives.ComputeDerivative(pointsVol, 1, 0, 25);
-            }
+        //[ExcelFunction(Name = "GREEK.DELTA.SMILE", Description = "Delta developped by Clement")]
+        //public static double DeltaSmile(string optionType, double spot, double strike, double volatility, double time, double[] pointsVol,
+        //                                    [ExcelArgument(Description = "Optional")] double riskFreeRate = 0,
+        //                                    [ExcelArgument(Description = "Optional")] double dividend = 0)
+        //{
+        //    Derivatives derivatives = new Derivatives(pointsVol.GetLength(0));
+        //    if (optionType == "CALL")
+        //    {
+        //        return CallDelta(spot, strike, volatility, time, riskFreeRate, dividend) + Vega(spot, strike, volatility, time, riskFreeRate, dividend) * derivatives.ComputeDerivative(pointsVol, 1, 0, 25);
+        //    }
+        //    if (optionType == "PUT")
+        //    {
+        //        return PutDelta(spot, strike, volatility, time, riskFreeRate, dividend) + Vega(spot, strike, volatility, time, riskFreeRate, dividend) * derivatives.ComputeDerivative(pointsVol, 1, 0, 25);
+        //    }
 
-            Exception e = new Exception("Wrong optionType valide type: PUT,CALL");
-            _logger.Error(e);
-            throw e;
-        }
+        //    Exception e = new Exception("Wrong optionType valide type: PUT,CALL");
+        //    _logger.Error(e);
+        //    throw e;
+        //}
 
         /// <summary>
         /// Differentiation
         /// </summary>
+        [ExcelFunction(Name = "GREEK.DELTA.STICKY", Description = "Delta par differentiation")]
         public static double DegueulasseDelta(string optionType, double spot,double modelVol, double strike, double time , int qty, double a,double b,double sigma,double rho, double m, double rate = 0, double dividend = 0)
         {
             double spotBump = 0.001;
@@ -128,6 +134,30 @@ namespace Galaxy.PricingService
             if (optionType == "PUT")
             {
                 return PutTheta(spot, strike, volatility, time, riskFreeRate, dividend);
+            }
+
+            Exception e = new Exception("Wrong optionType valide type: PUT,CALL");
+            _logger.Error(e);
+            throw e;
+        }
+
+        public static double NumTheta(string optionType, double spot, double strike, double volatility, double time, double riskFreeRate = 0, double dividend = 0)
+        {
+            double nextTime = time - 1/_timeBasis; // get time to expi for day j+1
+
+            if (optionType == "CALL")
+            {
+                double todayFairPrice = BlackScholesCall(spot, strike, time, volatility, riskFreeRate, dividend);
+                double nextDayFairPrice = BlackScholesCall(spot, strike, nextTime, volatility, riskFreeRate, dividend);
+
+                return nextDayFairPrice - todayFairPrice;
+            }
+            if (optionType == "PUT")
+            {
+                double todayFairPrice = BlackScholesPut(spot, strike, time, volatility, riskFreeRate, dividend);
+                double nextDayFairPrice = BlackScholesPut(spot, strike, nextTime, volatility, riskFreeRate, dividend);
+
+                return nextDayFairPrice - todayFairPrice;
             }
 
             Exception e = new Exception("Wrong optionType valide type: PUT,CALL");
@@ -448,6 +478,7 @@ namespace Galaxy.PricingService
             return prefix + letter + yearNb;
         }
 
+        [ExcelFunction(Name = "GetNextFutureTtCode", IsHidden = true)]
         public static string GetNextFutureTtCode(string prefix, DateTime OptionMaturity)
         {
             int month = OptionMaturity.Month;
@@ -472,6 +503,7 @@ namespace Galaxy.PricingService
             return prefix + res + year;
         }
 
+        [ExcelFunction(Name = "GetOptionTtCode", IsHidden = true)]
         public static string GetOptionTtCode(string productName, string optionType, DateTime maturity, int strike)
         {
             string key = productName;
@@ -491,6 +523,7 @@ namespace Galaxy.PricingService
         /// Return option maturity code
         /// Option type: "CALL" or "PUT"
         /// </summary>
+        [ExcelFunction(Name = "BuildOptionId", IsHidden = true)]
         public static string BuildOptionId(string optionType, DateTime maturityDate, string prefix = "", string suffix = "")
         {
             int value = maturityDate.Month;
@@ -544,6 +577,7 @@ namespace Galaxy.PricingService
         /// <summary>
         /// convert future ttcode to future ID (Reuters)
         /// </summary>
+        [ExcelFunction(Name = "ConvertTtCodeToId", IsHidden = true)]
         public static string ConvertTtCodeToId(string ttCode, string prefix)
         {
             int month = int.Parse(ttCode.Substring(4, 2));
@@ -553,46 +587,29 @@ namespace Galaxy.PricingService
             return BuildForwardId(prefix, maturity);
         }
 
-        ///// <summary>
-        ///// SVI volatility model
-        ///// </summary>
-        //public static double SviVolatility(double moneyness, double a, double b, double sigma, double rho, double m, double time)
-        //{
-        //    return Sqrt(Abs((a + b * (rho * (moneyness - m) + Sqrt((moneyness - m) * (moneyness - m) + sigma * sigma))) / time));
-        //}
-
         /// <summary>
-        /// SVI volatility model,   a=hauteur, b=backbone, rho=rotation, sigma=convexe
+        /// FittingModel volatility model,   a=hauteur, b=backbone, rho=rotation, sigma=convexe
         /// </summary>
-        public static double SviVolatility(double moneyness, double a, double b, double sigma, double rho, double m)
+        [ExcelFunction(Name = "ComputeSviVol", IsHidden = true)]
+        public static double ComputeSviVol(double moneyness, double a, double b, double sigma, double rho, double m)
         {
             return Sqrt(Abs((a + b * (rho * (moneyness - m) + Sqrt((moneyness - m) * (moneyness - m) + sigma * sigma))) ));
         }
 
-
-        ///// <summary>
-        ///// SVI volatility model
-        ///// </summary>
-        //[ExcelFunction(Name = "VOLATILITY.SVI", Description = "Return previous week day")]
-        //public static double SviVolatility(double strike, double spot, double a, double b, double sigma, double rho, double m, double time)
-        //{
-        //    double moneyness = Log(strike / spot);
-        //    return SviVolatility(moneyness, a, b, sigma, rho, m);
-        //}
-
         /// <summary>
-        /// SVI volatility model
+        /// FittingModel volatility model
         /// </summary>
-        [ExcelFunction(Name = "VOLATILITY.SVI", Description = "Return previous week day")]
+        [ExcelFunction(Name = "VOLATILITY.SVI", Description = "Compute svi volatility")]
         public static double SviVolatility(double strike, double spot, double a, double b, double sigma, double rho, double m)
         {
             double moneyness = Log(strike / spot);
-            return SviVolatility(moneyness, a, b, sigma, rho, m);
+            return ComputeSviVol(moneyness, a, b, sigma, rho, m);
         }
 
         /// <summary>
         /// get corresponding forward price from future price
         /// </summary>
+        [ExcelFunction(Name = "GetForwardClose", IsHidden = true)]
         public static double GetForwardClose(string forwardId, DateTime maturity, double futureClose)
         {
             if (maturity < DateTime.Today)
@@ -652,6 +669,7 @@ namespace Galaxy.PricingService
         /// <summary>
         /// Compute Forward Close price using interest rate and dividend
         /// </summary>
+        [ExcelFunction(Name = "GetForwardClosePrice", IsHidden = true)]
         private static double GetForwardClosePrice(double lowStrike, double highStrike, double lowCallPrice, double lowPutPrice, double highCallPrice, double highPutPrice, double spotClose, double time)
         {
             double impliedDiv = GetImpliedDividend(lowStrike, highStrike, spotClose, lowCallPrice, lowPutPrice, highCallPrice, highPutPrice, time);
@@ -663,6 +681,7 @@ namespace Galaxy.PricingService
         /// <summary>
         /// Compute dividend based on strike and Close price of options ATM
         /// </summary>
+        [ExcelFunction(Name = "GetImpliedDividend", IsHidden = true)]
         private static double GetImpliedDividend(double lowStrike, double highStrike, double closeSpot, double lowCallPrice, double lowPutPrice, double highCallPrice, double highPutPrice, double time)
         {
 
@@ -679,6 +698,7 @@ namespace Galaxy.PricingService
         /// <summary>
         /// Compute Interest Rate based on strike and Close price of options ATM
         /// </summary>
+        [ExcelFunction(Name = "GetImpliedRate", IsHidden = true)]
         private static double GetImpliedRate(double dividend, double strike, double closeSpot, double callPrice, double putPrice, double time)
         {
             return -Log((closeSpot * Exp(-dividend * time) - callPrice + putPrice) / strike) / time;
