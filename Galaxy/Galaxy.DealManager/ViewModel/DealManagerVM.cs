@@ -475,10 +475,7 @@ namespace Galaxy.DealManager.ViewModel
                     ObsBookPosition.Add(newPos);
                     return;
                 }
-                if (instruPos.InstruType != "FUTURE")
-                {
-                    Pnl.ComputeBookPosition(pos, instruPos);
-                }
+                Pnl.ComputeBookPosition(pos, instruPos);
             }
 
             foreach (ObsInstruPosition instruPos in _expiredPosDico.Values)
