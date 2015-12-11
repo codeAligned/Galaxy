@@ -139,7 +139,7 @@ namespace Pipe
                 instru.ModelVol = Option.SviVolatility(instru.Strike, instru.ForwardPrice, param.A, param.B, param.Sigma,param.Rho, param.M);
                 instru.FairPrice = Option.BlackScholes(instru.OptionType, instru.ForwardPrice, instru.Strike, time,instru.ModelVol);
                 instru.Delta = instru.Quantity * Option.Delta(instru.OptionType, instru.ForwardPrice, instru.Strike, instru.ModelVol, time);
-                instru.Theta = instru.Quantity * instru.LotSize * Option.Theta(instru.OptionType, instru.ForwardPrice, instru.Strike, instru.ModelVol, time);
+                instru.Theta = instru.Quantity * instru.LotSize * Option.NumTheta(instru.OptionType, instru.ForwardPrice, instru.Strike, instru.ModelVol, time);
                 instru.Rho = Option.Rho(instru.OptionType, instru.ForwardPrice, instru.Strike, instru.ModelVol, time);
                 instru.Vega = instru.Quantity * basisPoint * Option.Vega(instru.ForwardPrice, instru.Strike, instru.ModelVol, time);
                 instru.Gamma = (instru.Quantity * Math.Pow(instru.ForwardPrice,2) * Option.Gamma(instru.ForwardPrice, instru.Strike, instru.ModelVol, time)) / basisPoint;
