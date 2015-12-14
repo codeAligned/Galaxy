@@ -113,6 +113,13 @@ namespace Pipe
 
             foreach (var instru in instruDico.Values)
             {
+
+                double optionPx;
+                if (closePrice.TryGetValue(instru.InstruRic, out optionPx))
+                {
+                    instru.MtmPrice = optionPx;
+                }
+
                 //retreive vol param
                 VolParam param;
                 if (!_volParamDico.TryGetValue(instru.VolParamsId, out param))
@@ -127,11 +134,7 @@ namespace Pipe
                     continue;
                 }
 
-                double optionPx;
-                if (closePrice.TryGetValue(instru.InstruRic, out optionPx))
-                {
-                    instru.MtmPrice = optionPx;
-                }
+               
 
                 double time = Option.GetTimeToExpiration(_previousDay, instru.MaturityDate);
                 
