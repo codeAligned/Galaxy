@@ -491,7 +491,7 @@ namespace Galaxy.DatabaseService
                 var query = from b in db.Deal
                     where
                         b.TradeDate.Day == bookingDate.Day && b.TradeDate.Month == bookingDate.Month &&
-                        b.TradeDate.Year == bookingDate.Year
+                        b.TradeDate.Year == bookingDate.Year && b.Status != "Deleted"
                     orderby b.TradeDate ascending
                     select b;
 
