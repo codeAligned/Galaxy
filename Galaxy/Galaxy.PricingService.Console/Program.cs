@@ -1,6 +1,5 @@
 ﻿
 using System;
-using PricingLib;
 
 namespace Galaxy.PricingService.Console
 {
@@ -34,15 +33,15 @@ namespace Galaxy.PricingService.Console
                 data[i, 1] = Math.Sqrt(regressionFunction[0](Math.Log(t / 100)));
             }
 
-            Parameter[] outParams  = SVI.Fit(data, fwdPrice);
+            //Parameter[] outParams = FittingModel.SviFit(data, fwdPrice);
 
-            System.Console.WriteLine($"param a: {outParams[0].Value}");
-            System.Console.WriteLine($"param b: {outParams[1].Value}");
-            System.Console.WriteLine($"param rho: {outParams[2].Value}");
-            System.Console.WriteLine($"param sig: {outParams[3].Value}");
-            System.Console.WriteLine($"param m: {outParams[4].Value}");
+            //System.Console.WriteLine($"param a: {outParams[0].Value}");
+            //System.Console.WriteLine($"param b: {outParams[1].Value}");
+            //System.Console.WriteLine($"param rho: {outParams[2].Value}");
+            //System.Console.WriteLine($"param sig: {outParams[3].Value}");
+            //System.Console.WriteLine($"param m: {outParams[4].Value}");
 
-            System.Console.WriteLine(Option.SviVolatility(strike, fwdPrice, outParams[0].Value, outParams[1].Value, outParams[2].Value, outParams[3].Value, outParams[4].Value, time));
+            //System.Console.WriteLine(Option.SviVolatility(strike, fwdPrice, outParams[0].Value, outParams[1].Value, outParams[2].Value, outParams[3].Value, outParams[4].Value));
         }
     }
 }
