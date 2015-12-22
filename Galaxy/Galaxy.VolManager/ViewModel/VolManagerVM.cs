@@ -52,6 +52,8 @@ namespace Galaxy.VolManager.ViewModel
         string _futureId;
         string _forwardId;
 
+        Dispatcher _dispatcher;
+
         #endregion
 
         #region Assessors
@@ -109,6 +111,8 @@ namespace Galaxy.VolManager.ViewModel
             _strikeList = new List<double>();
             _instrumentPriceSafeDico = new ConcurrentDictionary<string, double>();
             _fwdBaseOffsetDico = new Dictionary<string, double>();
+
+            _dispatcher = Dispatcher.CurrentDispatcher;
 
             _marketFeed = marketFeed;
             _dbManager = dbManager;
@@ -168,7 +172,7 @@ namespace Galaxy.VolManager.ViewModel
         
         private void InitializeTimer()
         {
-            DispatcherTimer fastTimer = new DispatcherTimer {Interval = TimeSpan.FromSeconds(2)};
+            DispatcherTimer fastTimer = new DispatcherTimer {Interval = TimeSpan.FromSeconds(3)};
             fastTimer.Tick += RefreshRtData;
             fastTimer.Start();
         }
@@ -190,6 +194,16 @@ namespace Galaxy.VolManager.ViewModel
             LoadModelVol(false);
             ComputeFitError();
 
+            //Task taskA = new Task(() => LoadImpliedVol(false));
+            //taskA.ContinueWith((t) => LoadModelVol(false));
+            //taskA.ContinueWith((t) => ComputeFitError());
+            //taskA.Start();
+
+            ////Task taskB = new Task(() => LoadModelVol(false));
+            ////taskB.Start();
+
+            ////Task taskC = new Task(ComputeFitError());
+            ////taskC.Start();
         }
 
 
@@ -236,17 +250,15 @@ namespace Galaxy.VolManager.ViewModel
             _futureId = Option.GetNextFutureTtCode("FESX", SelectedMaturity);
             _forwardId = Option.BuildForwardId("STXE", SelectedMaturity);
 
-            //Task impliedVolTask = new Task(LoadImpliedVol);
-            //impliedVolTask.Start();
-            //impliedVolTask.Wait();
-
             LoadImpliedVol(true);
             LoadModelVol(true);
-            
 
-            //Task modelVolTask = new Task(LoadModelVol);
-            //modelVolTask.Start();
-            //modelVolTask.Wait();
+            //Task taskA = new Task(() => LoadImpliedVol(true));
+            //taskA.Start();
+
+            //Task taskB = new Task(() => LoadModelVol(true));
+            //taskB.Start();
+
         }
 
         private void LoadImpliedVol(bool reloadData)
@@ -266,7 +278,8 @@ namespace Galaxy.VolManager.ViewModel
 
             }
 
-            ImpliedVolPoints.Clear();
+      //      ImpliedVolPoints.Clear();
+            _dispatcher.BeginInvoke(new Action(() => { ImpliedVolPoints.Clear(); }));
             foreach (var data in _options)
             {
                 
@@ -285,7 +298,8 @@ namespace Galaxy.VolManager.ViewModel
 
                     if (volatility != 0)
                     {
-                        ImpliedVolPoints.Add(new Point(data.Strike.Value, volatility));
+                        _dispatcher.BeginInvoke(new Action(() => { ImpliedVolPoints.Add(new Point(data.Strike.Value, volatility)); ; }));
+               //         ImpliedVolPoints.Add(new Point(data.Strike.Value, volatility));
                     }
                 }
             }
@@ -297,10 +311,10 @@ namespace Galaxy.VolManager.ViewModel
             {
                 // retrieve fit params form db
                 Param = _dbManager.GetVolParams(SelectedProduct, SelectedMaturity);
-                //   Dispatcher.CurrentDispatcher.Invoke(() => ModelVolPoints.Clear());
+                _dispatcher.BeginInvoke(new Action(() => { ModelVolPoints.Clear(); }));
             }
 
-            ModelVolPoints.Clear();
+          //  ModelVolPoints.Clear();
 
             foreach (var data in _options)
             {
@@ -312,8 +326,10 @@ namespace Galaxy.VolManager.ViewModel
                 if (forwardPrice != 0)
                 {
                     double modelVol = Option.SviVolatility(data.Strike.Value, forwardPrice, Param.A, Param.B, Param.Sigma, Param.Rho, Param.M);
-              //      Dispatcher.CurrentDispatcher.Invoke(() => ModelVolPoints.Add(new Point(data.Strike.Value, modelVol)));
-                    ModelVolPoints.Add(new Point(data.Strike.Value, modelVol));
+
+                    _dispatcher.BeginInvoke(new Action(() => { ModelVolPoints.Add(new Point(data.Strike.Value, modelVol)); }));
+
+                    //       ModelVolPoints.Add(new Point(data.Strike.Value, modelVol));
                 }
             }
         }
@@ -357,7 +373,7 @@ namespace Galaxy.VolManager.ViewModel
                 data[i, 1] = ImpliedVolPoints[i].Y;
             }
 
-            Parameter[] outParams = SVI.Fit(data, forward);
+            Parameter[] outParams = FittingModel.SviFit(data, forward);
 
             Param.A = Math.Round(outParams[0].Value, 4);
             Param.B = Math.Round(outParams[1].Value, 4);
