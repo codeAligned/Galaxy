@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace Galaxy.PricingService
 {
     public class BookPosition
@@ -28,19 +23,19 @@ namespace Galaxy.PricingService
         public virtual string Book
         {
             get { return _book; }
-            set { _book = value;}
+            set { _book = value; }
         }
 
         public virtual double RealisedPnl
         {
             get { return _realisedPnl; }
-            set { _realisedPnl = value;}
+            set { _realisedPnl = value; }
         }
 
         public virtual double UnrealisedPnl
         {
             get { return _unrealisedPnl; }
-            set { _unrealisedPnl = value;}
+            set { _unrealisedPnl = value; }
         }
 
         public virtual double FairUnrealisedPnl

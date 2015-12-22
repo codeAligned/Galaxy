@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Reflection;
 using ExcelDna.Integration;
 using Galaxy.DatabaseService;
@@ -605,6 +606,47 @@ namespace Galaxy.PricingService
             double moneyness = Log(strike / spot);
             return ComputeSviVol(moneyness, a, b, sigma, rho, m);
         }
+        [ExcelFunction(Name = "VOLATILITY.PARAM.A")]
+        public static void GetParamA()
+        {
+            string conString = "Data Source = VPS210729; Initial Catalog = UatDb; User ID = sa; Password = Phy14!";
+            using (SqlConnection connection = new SqlConnection(conString))
+            {
+                connection.Open();
+                //
+                // The SqlCommand should be created inside a using statement.
+                // ... It receives the SQL statement as the first argument.
+                // ... It receives the connection object as the second argument.
+                // ... The SQL text only works with a specific database.
+                //
+                using (SqlCommand command = new SqlCommand("select * from VolParam Where MaturityDate = '2016-06-17'", connection))
+                {
+                    //
+                    // Instance methods can be used on the SqlCommand instance.
+                    // ... These read data from executing the command.
+                    //
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            for (int i = 0; i < reader.FieldCount; i++)
+                            {
+                                string res = reader.GetValue(i).ToString();
+
+                                Console.WriteLine(res);
+                            }
+                            Console.WriteLine();
+                        }
+                    }
+                }
+            }
+        }
+    
+    //DbManager db = new DbManager();
+    //VolParam Param = db.GetVolParams("OESX", new DateTime(2016,01,15));
+    //return Param.A;
+    //  return 999;
+
 
         /// <summary>
         /// get corresponding forward price from future price

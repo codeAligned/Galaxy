@@ -28,7 +28,7 @@ namespace Galaxy.PricingService
         protected double _color;
         protected double _ultima;
         protected double _speed;
-    
+
         protected double _realisedPnl;
 
         public string InstruRic { get; }
@@ -48,7 +48,7 @@ namespace Galaxy.PricingService
         public string InstruType { get; }
 
         public int Value => Quantity * LotSize;
-        
+
         public string ObsDelta => Delta.ToString("N2");
         public string ObsStickyDelta => StickyDelta.ToString("N2");
         public string ObsTheta => Theta.ToString("N2");
@@ -61,7 +61,7 @@ namespace Galaxy.PricingService
         public string ObsVeta => Veta.ToString("N2");
         public string ObsColor => Color.ToString("N2");
         public string ObsUltima => Ultima.ToString("N2");
-        public string ObsSpeed => Speed.ToString("N2"); 
+        public string ObsSpeed => Speed.ToString("N2");
 
         public string ObsModelVol => (ModelVol * 100).ToString("N2") + "%";
         public string ObsImpliedVol => (ImpliedVol * 100).ToString("N2") + "%";

@@ -16,8 +16,7 @@ namespace PricingLib
         public Parameter[] _parameters;
         private Func<double>[] _functions;
 
-
-        public NewtonRaphson(Parameter[] parameters, Func<double>[] functions, int numberOfDerivativePoints)
+        public NewtonRaphson(Parameter[] parameters, Func<double>[] functions, int numberOfDerivativePoints = 3)
         {
             _parameters = parameters;
             _functions = functions;
@@ -29,9 +28,7 @@ namespace PricingLib
             _x0 = new Matrix(numberOfFunctions, 1);
         }
 
-        public NewtonRaphson(Parameter[] parameters, Func<double>[] functions) : this(parameters, functions, 3) { }
-
-        public void Iterate()
+        public void IterateNewton()
         {
             int numberOfFunctions = _functions.Length;
             int numberOfParameters = _parameters.Length;

@@ -14,7 +14,7 @@ namespace PricingLib
         // value, the third row is the second derivative of the functional value.
         // The columns correspond to the points themselves.
         private Matrix[] _coefficients;
-       
+
         public Derivatives(int numberOfPoints)
         {
             SolveCoefs(numberOfPoints);

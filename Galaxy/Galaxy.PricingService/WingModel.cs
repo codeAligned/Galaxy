@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PricingLib
 {
-    public class WingModel : fittageVol
+    public class WingModel
     {
         private double[,] _data;
         private double[,] _dataVolLogMoy;
@@ -15,8 +15,6 @@ namespace PricingLib
         private double upSm;               //the up smoothing range
         private double downCutoff;
         private double UpCutoff;
-
-
 
         private double SSR;                //Skew swimmingness rate
         private double VCR;                //Volatility change rate
@@ -37,23 +35,11 @@ namespace PricingLib
             _forwardPrice = forwardPrice;
             upSm = 0.5;                                                                //default value
             downSm = 0.5;
-            _dataVolLogMoy = LogMoneynessVolData(_data, _forwardPrice);
+            _dataVolLogMoy = FittingModel.LogMoneynessVolData(_data, _forwardPrice);
             downCutoff = _dataVolLogMoy[0, 0];
-            UpCutoff = _dataVolLogMoy[_dataVolLogMoy.GetLength(0)-1, 0];
+            UpCutoff = _dataVolLogMoy[_dataVolLogMoy.GetLength(0) - 1, 0];
 
-
-
-
-            //VCR = 0;                                                                   //default value
-            //SCR = 0;
-            //synthFwd = Math.Pow(_forwardPrice, SSR / 100) * Math.Pow(refPrice, 1 - SSR / 100);//attention, il faut des pointeurs, ref ou QQCH
-            //volRef;
-            //slopeRef;
-            //SSR=100;
-            //refPrice;
-
-
-            InitialisationPara();//ordre: cste, slope, put ordre 2, call ordre 2
+            InitWingParam();//ordre: cste, slope, put ordre 2, call ordre 2
 
             var k = new Parameter(0);
             Parameter[] observedParameters = { k };
@@ -64,14 +50,14 @@ namespace PricingLib
             };
 
 
-       //     var LMregressor = new LevenbergMarquardt(Function, WingCenterPara, observedParameters, _dataVolLogMoy, 5);//for point of derivatives, regarder codeWWWfavouriteP
+            //     var LMregressor = new LevenbergMarquardt(Function, WingCenterPara, observedParameters, _dataVolLogMoy, 5);//for point of derivatives, regarder codeWWWfavouriteP
             WingCenterPara = LevenbergMarquardt.Compute(Function, WingCenterPara, observedParameters, _dataVolLogMoy, 5);
 
-        //    WingCenterPara = LMregressor._regressionParameters;
+            //    WingCenterPara = LMregressor._regressionParameters;
             interpolationLagrangeExt();
         }
 
-        public double getVol(double strike)
+        public double GetVolWing(double strike)
         {
             double res;
             double strikeM = Math.Log(strike / synthFwd);
@@ -102,7 +88,7 @@ namespace PricingLib
             }
             return res;
         }
-        public void InitialisationPara()
+        public void InitWingParam()
         {
             int i = _dataVolLogMoy.GetLength(0) / 2;
             if (_dataVolLogMoy[i, 0] < 0)
@@ -125,29 +111,27 @@ namespace PricingLib
 
 
             WingCenterPara = interpolationLagrangeIni(points);
-
-
         }
 
         public Parameter[] interpolationLagrangeIni(double[,] points)
         {
-            Parameter[] res=new Parameter[4];
+            Parameter[] res = new Parameter[4];
             res[0] = new Parameter(0);
             res[1] = new Parameter(0);
             res[2] = new Parameter(0);
-            for (int i=0; i<3; i++)
+            for (int i = 0; i < 3; i++)
             {
                 if (i == 0)
                 {
                     res[2].Value += points[i, 1] / (points[i, 0] - points[i + 1, 0]) / (points[i, 0] - points[i + 2, 0]);
-                    res[1].Value += -points[i, 1]* (points[i + 1, 0] + points[i + 2, 0]) / (points[i, 0] - points[i + 1, 0]) / (points[i, 0] - points[i + 2, 0]);
-                    res[0].Value += points[i, 1]* points[i + 1, 0]* points[i + 2, 0] / (points[i, 0] - points[i + 1, 0]) / (points[i, 0] - points[i + 2, 0]);
+                    res[1].Value += -points[i, 1] * (points[i + 1, 0] + points[i + 2, 0]) / (points[i, 0] - points[i + 1, 0]) / (points[i, 0] - points[i + 2, 0]);
+                    res[0].Value += points[i, 1] * points[i + 1, 0] * points[i + 2, 0] / (points[i, 0] - points[i + 1, 0]) / (points[i, 0] - points[i + 2, 0]);
                 }
                 if (i == 1)
                 {
-                    res[2].Value += points[i, 1] / (points[i, 0] - points[i -1, 0]) / (points[i, 0] - points[i + 1, 0]);
-                    res[1].Value += -points[i, 1]*(points[i + 1, 0] + points[i - 1, 0]) / (points[i, 0] - points[i - 1, 0]) / (points[i, 0] - points[i + 1, 0]);
-                    res[0].Value += points[i, 1] * points[i + 1, 0] * points[i -1, 0] / (points[i, 0] - points[i - 1, 0]) / (points[i, 0] - points[i + 1, 0]);
+                    res[2].Value += points[i, 1] / (points[i, 0] - points[i - 1, 0]) / (points[i, 0] - points[i + 1, 0]);
+                    res[1].Value += -points[i, 1] * (points[i + 1, 0] + points[i - 1, 0]) / (points[i, 0] - points[i - 1, 0]) / (points[i, 0] - points[i + 1, 0]);
+                    res[0].Value += points[i, 1] * points[i + 1, 0] * points[i - 1, 0] / (points[i, 0] - points[i - 1, 0]) / (points[i, 0] - points[i + 1, 0]);
                 }
                 if (i == 2)
                 {
@@ -163,10 +147,10 @@ namespace PricingLib
         public void interpolationLagrangeExt()
         {
             double valInter;
-            valInter = (WingCenterPara[1].Value+2*downCutoff*WingCenterPara[2].Value)/2/(downCutoff*downSm);
+            valInter = (WingCenterPara[1].Value + 2 * downCutoff * WingCenterPara[2].Value) / 2 / (downCutoff * downSm);
             WingPutPara[2] = new Parameter(valInter);
-            WingPutPara[1] = new Parameter(-valInter*2*downCutoff*(1+downSm));
-            WingPutPara[0] = new Parameter(WingCenterPara[0].Value + WingCenterPara[1].Value * downCutoff + WingCenterPara[2].Value * downCutoff * downCutoff- WingPutPara[1].Value*downCutoff-WingPutPara[2].Value*downCutoff*downCutoff);
+            WingPutPara[1] = new Parameter(-valInter * 2 * downCutoff * (1 + downSm));
+            WingPutPara[0] = new Parameter(WingCenterPara[0].Value + WingCenterPara[1].Value * downCutoff + WingCenterPara[2].Value * downCutoff * downCutoff - WingPutPara[1].Value * downCutoff - WingPutPara[2].Value * downCutoff * downCutoff);
             valInter = (WingCenterPara[1].Value + 2 * UpCutoff * WingCenterPara[3].Value) / 2 / (UpCutoff * upSm);
             WingCallPara[2] = new Parameter(valInter);
             WingCallPara[1] = new Parameter(-valInter * 2 * UpCutoff * (1 + upSm));

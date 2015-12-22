@@ -11,7 +11,7 @@ namespace PricingLib
         private double _derivativeStep = 1e-3;
         private DerivativeStepType _derivativeStepType = DerivativeStepType.Relative;
 
-        public Parameter(){}
+        public Parameter() { }
         public Parameter(double value) : this() { _value = value; }
         public Parameter(double value, double derivativeStep) : this(value) { _derivativeStep = derivativeStep; }
         public Parameter(double value, double derivativeStep, DerivativeStepType stepSizeType) : this(value, derivativeStep) { _derivativeStepType = stepSizeType; }
@@ -86,5 +86,5 @@ namespace PricingLib
 
         public static implicit operator double (Parameter p) { return p.Value; }
         public override string ToString() { return "Parameter: Value:" + Value + " IsSolvedFor:" + _isSolvedFor; }
-    } 
+    }
 }
