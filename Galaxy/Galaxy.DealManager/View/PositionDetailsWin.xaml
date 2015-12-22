@@ -29,8 +29,8 @@
                 <dxg:GridColumn Header="Exec Price" Width="70" Binding="{Binding ExecPrice}"/>
                 <dxg:GridColumn Header="Book ID" Width="80" Binding="{Binding BookId}"/>
                 <dxg:GridColumn Header="Trade Date" Width="80" Binding="{Binding TradeDate}"/>
-                <dxg:GridColumn Header="Clearing Fee" Width="80" Binding="{Binding ClearingFee}"/>
                 <dxg:GridColumn Header="Transac Fee" Width="80" Binding="{Binding TransactionFee}"/>
+                <dxg:GridColumn Header="Clearing Fee" Width="80" Binding="{Binding ClearingFee}"/>
                 <dxg:GridColumn Header="Broker" Width="80" Binding="{Binding Broker}"/>
                 <dxg:GridColumn Header="Status" Width="100" Binding="{Binding Status}"/>
                 <dxg:GridColumn Header="Comment" Width="100" Binding="{Binding Comment}"/>

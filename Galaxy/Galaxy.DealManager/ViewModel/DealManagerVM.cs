@@ -12,7 +12,6 @@ using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Threading;
 using DealManager.Commands;
-using DevExpress.Mvvm.DataAnnotations;
 using DevExpress.Mvvm;
 using Galaxy.DatabaseService;
 using Galaxy.DealManager.Model;
@@ -23,7 +22,6 @@ using log4net;
 
 namespace Galaxy.DealManager.ViewModel
 {
-    [POCOViewModel(ImplementIDataErrorInfo = true)]
     public class DealManagerVM : INotifyPropertyChanged
     {
         #region Parameters
@@ -49,11 +47,14 @@ namespace Galaxy.DealManager.ViewModel
         private Deal[] _deals;
         private string _productType = "OPTION";
         private DateTime _maturity;
+        private string _instruDescription;
+        private string _instrumentId;
+        private double _forwardLevel;
+        private double _volLevel;
+
         private const double _basisPoint = 0.001;
-
         private bool marketConnectionUp = false;
-
-        
+        private readonly Dictionary<string, Instrument> _instruInfoDico;
 
         #endregion
 
@@ -69,11 +70,9 @@ namespace Galaxy.DealManager.ViewModel
         public ICommand WindowsLoadedCmd { get; }
         public ICommand OpenSettleDealCmd { get; }
 
-
         public string AppTitle { get; set; }
         public Action CloseAction { get; set; }
         public ObservableCollection<string> InstrumentNames { get; set; }
-        private Instrument[] _instruments;
         
         public string[] Users { get; set; }
         public string[] Books { get; } = { "VS Equity", "VS FX" };
@@ -95,15 +94,37 @@ namespace Galaxy.DealManager.ViewModel
         public string ProductType
         {
             get { return _productType; }
-            set { _productType = value;
-                FilterInstrumentList();
-            }
+            set { _productType = value; FilterInstrumentList();}
         }
 
         public DateTime Maturity
         {
             get { return _maturity; }
             set { _maturity = value; FilterInstrumentList(); }
+        }
+
+        public string InstrumentId
+        {
+            get { return _instrumentId; }
+            set { _instrumentId = value; UpdateInstruInfo(); OnPropertyChanged(nameof(InstrumentId)); }
+        }
+
+        public string InstrumentDescription
+        {
+            get { return _instruDescription; }
+            set { _instruDescription = value; OnPropertyChanged(nameof(InstrumentDescription)); }
+        }
+
+        public double ForwardLevel
+        {
+            get { return _forwardLevel; }
+            set { _forwardLevel = value; OnPropertyChanged(nameof(ForwardLevel)); }
+        }
+
+        public double VolLevel
+        {
+            get { return _volLevel;}
+            set { _volLevel = value;OnPropertyChanged(nameof(VolLevel)); }
         }
 
         #endregion
@@ -131,6 +152,7 @@ namespace Galaxy.DealManager.ViewModel
             _bookPositionDico = new Dictionary<string, ObsBookPosition>();
             _volParamDico = new Dictionary<string, VolParam>();
             _fwdBaseOffsetDico = new Dictionary<string, double>();
+            _instruInfoDico = new Dictionary<string, Instrument>();
 
             _instrumentPriceSafeDico = new ConcurrentDictionary<string, double>();
             RowDoubleClickCmd = new DelegateCommand<object>(DisplayUpdateRmFormWin);
@@ -164,13 +186,7 @@ namespace Galaxy.DealManager.ViewModel
             LoadExpiredDeals();
             LoadCurrentDeals();
             LoadVolParams();
-        }
-
-        public static void BuildMetadata(MetadataBuilder<DealManagerVM> builder)
-        {
-          //  builder.Property(x => x.Broker).Required(() => "Please enter an instrument.");
-            //PriceCheck(builder.Property(x => x.Price)).Required(() => "Please enter the price.");
-            //builder.Property(x => x.Broker).Required(() => "Please enter the last name.");
+            LoadInstrumentsInfo();
         }
 
         private void ConnectionStatusHandler(IMarketFeed sender, string connectionState)
@@ -178,10 +194,47 @@ namespace Galaxy.DealManager.ViewModel
             if (connectionState == "Connection_Succeed")
             {
                 marketConnectionUp = true;
+                SuscribeToInstrumentPrices();
             }
             else if (connectionState == "Connection_Down")
             {
                 marketConnectionUp = false;
+            }
+        }
+
+        private void SuscribeToInstrumentPrices()
+        {
+            foreach (var instru in _instruInfoDico.Values)
+            {
+                string instruType = "";
+                if (instru.ProductId == "FESX")
+                {
+                    instruType = "FUTURE";
+                }
+                else if (instru.ProductId == "OESX")
+                {
+                    instruType = "OPTION";
+                }
+                else
+                {
+                    continue;
+                }
+
+                _marketFeed.SuscribeToInstrumentPrice(instru.TtCode, instruType, instru.ProductId, "Eurex", "Mid");
+                _instrumentPriceSafeDico.TryAdd(instru.TtCode, 0);
+
+                if (!string.IsNullOrEmpty(instru.RefForwardId) && !_instrumentPriceSafeDico.ContainsKey(instru.RefForwardId))
+                {
+                    if (instru.MaturityDate >= DateTime.Today)
+                    {
+                        DateTime previousDay = Option.PreviousWeekDay(DateTime.Today);
+                        double futureClose = _dbManager.GetSpotClose(previousDay, instru.RefFutureId);
+                        double forwardClose = Option.GetForwardClose(instru.RefForwardId, instru.MaturityDate, futureClose);
+                        double forwardBaseOffset = forwardClose - futureClose;
+                        _fwdBaseOffsetDico.Add(instru.RefForwardId, forwardBaseOffset);
+                        _instrumentPriceSafeDico.TryAdd(instru.RefForwardId, 0);
+                    }
+                }
             }
         }
 
@@ -209,12 +262,12 @@ namespace Galaxy.DealManager.ViewModel
 
         public void OpenDealForm(object obj)
         {
-            _instruments = _dbManager.GetAllInstruments(DateTime.Today);
             FilterInstrumentList();
 
-            
             Users = _dbManager.GetAllFrontUserIds();
-            SelectedDeal = new Deal {Status = "Front Booking", TradeDate = DateTime.Now};
+            InstrumentId = "";
+            InstrumentDescription = "";
+            SelectedDeal = new Deal { Status = "Front Booking", TradeDate = DateTime.Now};
             var bookingAddForm = new AddFormWin {DataContext = this};
             bookingAddForm.Show();
             CloseAction = bookingAddForm.Close;
@@ -222,7 +275,7 @@ namespace Galaxy.DealManager.ViewModel
 
         private void FilterInstrumentList()
         {
-            DateTime[] instruMaturitys = (from i in _instruments where i.Product.ProductType == ProductType select i.MaturityDate).Distinct().ToArray();
+            DateTime[] instruMaturitys = (from i in _instruInfoDico.Values where i.Product.ProductType == ProductType select i.MaturityDate).Distinct().ToArray();
             
             Maturitys.Clear();
             foreach (var matu in instruMaturitys)
@@ -235,7 +288,7 @@ namespace Galaxy.DealManager.ViewModel
                 Maturity = instruMaturitys[0];
             }
 
-            string[] instruNames = (from i in _instruments where i.Product.ProductType == ProductType && i.MaturityDate == Maturity select i.Id).ToArray();
+            string[] instruNames = (from i in _instruInfoDico.Values where i.Product.ProductType == ProductType && i.MaturityDate == Maturity select i.Id).ToArray();
             InstrumentNames.Clear();
             foreach (var instru in instruNames)
             {
@@ -257,12 +310,55 @@ namespace Galaxy.DealManager.ViewModel
                 InstrumentNames.Add(instru);
             }
 
-  
             Users = _dbManager.GetAllFrontUserIds();
             SelectedDeal = new Deal { Status = "Front Booking", TradeDate = DateTime.Now, Comment = "Settlement Deal"};
             var settleDealWin = new CloseDealWin { DataContext = this };
             settleDealWin.Show();
             CloseAction = settleDealWin.Close;
+        }
+
+        private void UpdateInstruInfo()
+        {
+            Instrument instru;
+            if (!string.IsNullOrEmpty(InstrumentId) && _instruInfoDico.TryGetValue(InstrumentId, out instru))
+            {
+                SelectedDeal.InstrumentId = InstrumentId;
+                InstrumentDescription = instru.FullName;
+
+                Instrument currentInstru = _instruInfoDico[SelectedDeal.InstrumentId];
+                double fwdPrice = 0;
+                if (_instrumentPriceSafeDico.ContainsKey(currentInstru.RefForwardId))
+                {
+                    UpdateForwardPrices(currentInstru.RefForwardId, currentInstru.RefFutureId);
+                    fwdPrice = _instrumentPriceSafeDico[currentInstru.RefForwardId];
+                    ForwardLevel = Math.Round(fwdPrice,2) ;
+                    SelectedDeal.ForwardLevel = Math.Round(fwdPrice,2);
+                }
+                else
+                {
+                    ForwardLevel = 0;
+                    SelectedDeal.ForwardLevel = 0;
+                }
+
+                double targetOptionPrice = GetOutTheMoneyOptionPrice(currentInstru.ProductId, currentInstru.MaturityDate, currentInstru.Strike.Value, currentInstru.ProductId, "Eurex", currentInstru.OptionType);
+                double time = Option.GetTimeToExpiration(DateTime.Today, currentInstru.MaturityDate);
+                if (targetOptionPrice != 0)
+                {
+                    double res = Option.BlackScholesVol(targetOptionPrice, fwdPrice, currentInstru.Strike.Value,
+                        currentInstru.OptionType, time);
+                    VolLevel = Math.Round(res * 100,2) ;
+                    SelectedDeal.VolatilityLevel = Math.Round(res * 100,2);
+                }
+                else
+                {
+                    SelectedDeal.VolatilityLevel = 0;
+                    VolLevel = 0;
+                }
+            }
+            else
+            {
+                InstrumentDescription = "Unknown Instrument";
+            }
         }
 
         public void DisplayUpdateRmFormWin(object obj)
@@ -272,6 +368,9 @@ namespace Galaxy.DealManager.ViewModel
 
             if(SelectedDeal == null)
                 return;
+
+            InstrumentId = SelectedDeal.InstrumentId;
+            InstrumentDescription = "";
 
             var query = from b in ObsPositions
                         select b.InstruRic;
@@ -304,7 +403,6 @@ namespace Galaxy.DealManager.ViewModel
             {
                 if (deal?.InstrumentId == SelectedObsInstruPosition?.InstruRic)
                 {
-                   // ObsDeals.Add(new Deal(deal));
                     ObsDeals.Add(deal);
                 }
             }
@@ -321,6 +419,7 @@ namespace Galaxy.DealManager.ViewModel
             }
 
             SelectedDeal.TradeDate = DateTime.Now;
+
             _dbManager.AddDeal(SelectedDeal);
 
             CloseAction();
@@ -329,7 +428,7 @@ namespace Galaxy.DealManager.ViewModel
 
         private bool CheckDealData()
         {
-            if (string.IsNullOrEmpty(SelectedDeal.InstrumentId))
+            if (string.IsNullOrEmpty(SelectedDeal.InstrumentId) || !_instruInfoDico.ContainsKey(SelectedDeal.InstrumentId))
             {
                 MessageBox.Show("Invalid Instrument");
                 return false;
@@ -392,7 +491,6 @@ namespace Galaxy.DealManager.ViewModel
             {
                 if (deal?.InstrumentId == SelectedObsInstruPosition?.InstruRic)
                 {
-                    //ObsDeals.Add(new ObsDeal(deal));
                     ObsDeals.Add(deal);
                 }
             }
@@ -429,6 +527,15 @@ namespace Galaxy.DealManager.ViewModel
             }
         }
 
+        private void LoadInstrumentsInfo()
+        {
+            Instrument[] instruments = _dbManager.GetAllInstruments(DateTime.Today);
+            foreach (var instru in instruments)
+            {
+                _instruInfoDico.Add(instru.Id,instru);
+            }
+        }
+
         private void LoadExpiredDeals()
         {
             Deal[] expiredDeals = _dbManager.GetAllExpiredDeals();
@@ -460,7 +567,6 @@ namespace Galaxy.DealManager.ViewModel
                     ObsPositions.Add(newPos);
                     continue;
                 }
-
                 Pnl.ComputeInstrumentPosition(pos,deal);
             }
 
@@ -528,8 +634,8 @@ namespace Galaxy.DealManager.ViewModel
                 }
                 else
                 {
-                    _marketFeed.SuscribeToInstrumentPrice(pos.TtInstruId, pos.InstruType, pos.ProductName, pos.Market, "Mid");
-                    _instrumentPriceSafeDico.TryAdd(pos.TtInstruId, 0);
+                    //_marketFeed.SuscribeToInstrumentPrice(pos.TtInstruId, pos.InstruType, pos.ProductName, pos.Market, "Mid");
+                    //_instrumentPriceSafeDico.TryAdd(pos.TtInstruId, 0);
                 }
 
                 if (pos.InstruType == "FUTURE")
@@ -551,15 +657,15 @@ namespace Galaxy.DealManager.ViewModel
                     else
                     {
                         //check if instrument is expired and if Forward as been created correctly
-                        if (pos.MaturityDate >= DateTime.Today)
-                        {
-                            DateTime previousDay = Option.PreviousWeekDay(DateTime.Today);
-                            double futureClose = _dbManager.GetSpotClose(previousDay, pos.FutureId);
-                            double forwardClose = Option.GetForwardClose(pos.ForwardId, pos.MaturityDate, futureClose);
-                            double forwardBaseOffset = forwardClose - futureClose;
-                            _fwdBaseOffsetDico.Add(pos.ForwardId, forwardBaseOffset);
-                            _instrumentPriceSafeDico.TryAdd(pos.ForwardId, 0);
-                        }
+                        //if (pos.MaturityDate >= DateTime.Today)
+                        //{
+                        //    DateTime previousDay = Option.PreviousWeekDay(DateTime.Today);
+                        //    double futureClose = _dbManager.GetSpotClose(previousDay, pos.FutureId);
+                        //    double forwardClose = Option.GetForwardClose(pos.ForwardId, pos.MaturityDate, futureClose);
+                        //    double forwardBaseOffset = forwardClose - futureClose;
+                        //    _fwdBaseOffsetDico.Add(pos.ForwardId, forwardBaseOffset);
+                        //    _instrumentPriceSafeDico.TryAdd(pos.ForwardId, 0);
+                        //}
                         continue;
                     }
 
@@ -608,10 +714,25 @@ namespace Galaxy.DealManager.ViewModel
             double targetOptionPrice;
             if (!_instrumentPriceSafeDico.TryGetValue(targetOptionTtCode, out targetOptionPrice))
             {
-                _marketFeed.SuscribeToInstrumentPrice(targetOptionTtCode, pos.InstruType, pos.ProductName, pos.Market, "Mid");
-                _instrumentPriceSafeDico.TryAdd(targetOptionTtCode, 0);
+                //_marketFeed.SuscribeToInstrumentPrice(targetOptionTtCode, pos.InstruType, pos.ProductName, pos.Market, "Mid");
+                //_instrumentPriceSafeDico.TryAdd(targetOptionTtCode, 0);
             }
 
+            return targetOptionPrice;
+        }
+
+        // For a specific strike and maturity, we use the option(call or put) which is out of the money
+        // this methode is in charge to retreive the current option ric out of the money 
+        private double GetOutTheMoneyOptionPrice(string productName,DateTime maturity, int strike, string instruType, string market, string optionType)
+        {
+            // build option tt code
+            string targetOptionTtCode = Option.GetOptionTtCode(productName, optionType, maturity, strike);
+            // get or suscribe option price
+            double targetOptionPrice;
+            if (!_instrumentPriceSafeDico.TryGetValue(targetOptionTtCode, out targetOptionPrice))
+            {
+                return 0;
+            }
             return targetOptionPrice;
         }
 
@@ -661,13 +782,13 @@ namespace Galaxy.DealManager.ViewModel
             }
             else
             {
-                Instrument future = _dbManager.GetFuture(futureId);
-                var instruType = future.Product.ProductType;
-                var productName = future.Product.Id;
-                var market = future.Product.Market;
-                var ttCode = future.TtCode;
-                _marketFeed.SuscribeToInstrumentPrice(ttCode, instruType, productName, market, "Mid");
-                _instrumentPriceSafeDico.TryAdd(ttCode, 0);
+                //Instrument future = _dbManager.GetFuture(futureId);
+                //var instruType = future.Product.ProductType;
+                //var productName = future.Product.Id;
+                //var market = future.Product.Market;
+                //var ttCode = future.TtCode;
+                //_marketFeed.SuscribeToInstrumentPrice(ttCode, instruType, productName, market, "Mid");
+                //_instrumentPriceSafeDico.TryAdd(ttCode, 0);
             }
         }
 
