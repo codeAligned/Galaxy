@@ -606,8 +606,39 @@ namespace Galaxy.PricingService
             double moneyness = Log(strike / spot);
             return ComputeSviVol(moneyness, a, b, sigma, rho, m);
         }
+
         [ExcelFunction(Name = "VOLATILITY.PARAM.A")]
-        public static void GetParamA()
+        public static double GetParamA(string maturity)
+        {
+            return GetVolparam("A", maturity);
+        }
+
+        [ExcelFunction(Name = "VOLATILITY.PARAM.B")]
+        public static double GetParamB(string maturity)
+        {
+            return GetVolparam("B", maturity);
+        }
+
+        [ExcelFunction(Name = "VOLATILITY.PARAM.SIGMA")]
+        public static double GetParamSigma(string maturity)
+        {
+            return GetVolparam("Sigma", maturity);
+        }
+
+        [ExcelFunction(Name = "VOLATILITY.PARAM.RHO")]
+        public static double GetParamRho(string maturity)
+        {
+            return GetVolparam("Rho", maturity);
+        }
+
+        [ExcelFunction(Name = "VOLATILITY.PARAM.M")]
+        public static double GetParamM(string maturity)
+        {
+            return GetVolparam("M", maturity);
+        }
+
+        //2016-06-17
+        private static double GetVolparam(string paramName, string maturity)
         {
             string conString = "Data Source = VPS210729; Initial Catalog = UatDb; User ID = sa; Password = Phy14!";
             using (SqlConnection connection = new SqlConnection(conString))
@@ -619,7 +650,7 @@ namespace Galaxy.PricingService
                 // ... It receives the connection object as the second argument.
                 // ... The SQL text only works with a specific database.
                 //
-                using (SqlCommand command = new SqlCommand("select * from VolParam Where MaturityDate = '2016-06-17'", connection))
+                using (SqlCommand command = new SqlCommand($"select * from VolParam Where MaturityDate = '{maturity}'", connection))
                 {
                     //
                     // Instance methods can be used on the SqlCommand instance.
@@ -631,18 +662,19 @@ namespace Galaxy.PricingService
                         {
                             for (int i = 0; i < reader.FieldCount; i++)
                             {
-                                string res = reader.GetValue(i).ToString();
-
-                                Console.WriteLine(res);
+                                if (reader.GetName(i) == paramName)
+                                {
+                                    return (double)reader.GetValue(i);
+                                }
                             }
-                            Console.WriteLine();
                         }
                     }
                 }
             }
+            return 0;
         }
-    
-    //DbManager db = new DbManager();
+
+        //DbManager db = new DbManager();
     //VolParam Param = db.GetVolParams("OESX", new DateTime(2016,01,15));
     //return Param.A;
     //  return 999;
