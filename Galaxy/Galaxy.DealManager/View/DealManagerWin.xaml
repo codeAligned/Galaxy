@@ -94,7 +94,7 @@
                             <dxg:GridColumn Header="Expi" Width="40" Binding="{Binding Expiry}"  />
                             <dxg:GridColumn Header="Lot" Width="30" Binding="{Binding LotSize}" />
                             <dxg:GridColumn Header="Qty" Width="50" Binding="{Binding Quantity}"/>
-                            <dxg:GridColumn Header="Avg Price" Width="60" Binding="{Binding AvgPrice}"/>
+                            <dxg:GridColumn Header="Avg Price" Width="60" Binding="{Binding ObsAvgPrice}"/>
                             <dxg:GridColumn Header="Value" Width="50" Binding="{Binding Value}"/>
                             <dxg:GridColumn Header="Realised P&amp;l" Width="80" Binding="{Binding ObsRealisedPnl}"/>
                             <dxg:GridColumn Header="Unrealised P&amp;l" Width="90" Binding="{Binding ObsLatentPnl}"/>

@@ -58,7 +58,10 @@ namespace Galaxy.PricingService
             pos.RealisedPnl += instruPos.RealisedPnl;
             pos.UnrealisedPnl += instruPos.UnrealisedPnl;
             pos.FairUnrealisedPnl += instruPos.FairUnrealisedPnl;
-            pos.Cash += instruPos.RealisedPnl - instruPos.Value * instruPos.AvgPrice;
+            if (instruPos.InstruType == "OPTION")
+            {
+                pos.Cash += instruPos.RealisedPnl - instruPos.Value * instruPos.AvgPrice;
+            }
         }
 
         public static void ComputeBookRisk(BookPosition pos, InstrumentPosition instruPos)

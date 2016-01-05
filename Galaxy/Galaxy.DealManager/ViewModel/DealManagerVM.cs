@@ -594,7 +594,7 @@ namespace Galaxy.DealManager.ViewModel
                     ObsBookPosition.Add(newPos);
                     return;
                 }
-                Pnl.ComputeBookPosition(pos,instruPos);
+                Pnl.ComputeBookPosition(pos, instruPos);
             }
         }
 

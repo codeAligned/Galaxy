@@ -62,6 +62,7 @@ namespace Galaxy.PricingService
         public string ObsColor => Color.ToString("N2");
         public string ObsUltima => Ultima.ToString("N2");
         public string ObsSpeed => Speed.ToString("N2");
+        public string ObsAvgPrice => AvgPrice.ToString("N2");
 
         public string ObsModelVol => (ModelVol * 100).ToString("N2") + "%";
         public string ObsImpliedVol => (ImpliedVol * 100).ToString("N2") + "%";

@@ -603,6 +603,11 @@ namespace Galaxy.PricingService
         [ExcelFunction(Name = "VOLATILITY.SVI", Description = "Compute svi volatility")]
         public static double SviVolatility(double strike, double spot, double a, double b, double sigma, double rho, double m)
         {
+            if (strike == 0 || spot == 0 || a == 0 || b == 0 || sigma == 0 || rho == 0 || m == 0)
+            {
+                return 0;
+            }
+
             double moneyness = Log(strike / spot);
             return ComputeSviVol(moneyness, a, b, sigma, rho, m);
         }
