@@ -73,15 +73,15 @@
             <StackPanel>
                 <DockPanel>
                     <Label Content="Broker :"  Width="88"/>
-                    <dxe:ComboBoxEdit Margin="5" NullText="Broker"  Text="{Binding SelectedDeal.Broker}" 
-                        SelectedItem="{Binding SelectedDeal.Broker}" 
+                    <dxe:ComboBoxEdit Margin="5" NullText="Broker"  Text="{Binding Broker}" 
+                        SelectedItem="{Binding Broker}" 
                         ItemsSource="{Binding Brokers}" >
                     </dxe:ComboBoxEdit>
                 </DockPanel>
                 <DockPanel/>
                 <DockPanel>
                     <Label Content="Transac Fee :"  Width="88"/>
-                    <dxe:TextEdit Margin="5" NullText="Transaction Fee" Text="{Binding SelectedDeal.TransactionFee}"/>
+                    <dxe:TextEdit Margin="5" NullText="Transaction Fee" Text="{Binding TransacFee}"/>
                 </DockPanel>
                 <DockPanel>
                     <Label Content="Clearing Fees :"  Width="88"/>

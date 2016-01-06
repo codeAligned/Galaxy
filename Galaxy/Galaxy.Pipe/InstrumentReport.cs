@@ -144,7 +144,7 @@ namespace Pipe
                 instru.Delta = instru.Quantity * Option.Delta(instru.OptionType, instru.ForwardPrice, instru.Strike, instru.ModelVol, time);
                 instru.Theta = instru.Quantity * instru.LotSize * Option.NumTheta(instru.OptionType, instru.ForwardPrice, instru.Strike, instru.ModelVol, time);
                 instru.Rho = Option.Rho(instru.OptionType, instru.ForwardPrice, instru.Strike, instru.ModelVol, time);
-                instru.Vega = instru.Quantity * basisPoint * Option.Vega(instru.ForwardPrice, instru.Strike, instru.ModelVol, time);
+                instru.Vega = instru.Quantity * basisPoint * 10 * Option.Vega(instru.ForwardPrice, instru.Strike, instru.ModelVol, time);
                 instru.Gamma = (instru.Quantity * Math.Pow(instru.ForwardPrice,2) * Option.Gamma(instru.ForwardPrice, instru.Strike, instru.ModelVol, time)) / basisPoint;
                 instru.Vanna = Option.Vanna(instru.ForwardPrice, instru.Strike, instru.ModelVol, time);
                 instru.Vomma = Option.Vomma(instru.ForwardPrice, instru.Strike, instru.ModelVol, time);

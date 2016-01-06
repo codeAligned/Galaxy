@@ -62,6 +62,10 @@ namespace Galaxy.PricingService
             {
                 pos.Cash += instruPos.RealisedPnl - instruPos.Value * instruPos.AvgPrice;
             }
+            if (instruPos.InstruType == "FUTURE")
+            {
+                pos.Cash += instruPos.RealisedPnl;
+            }
         }
 
         public static void ComputeBookRisk(BookPosition pos, InstrumentPosition instruPos)

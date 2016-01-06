@@ -51,6 +51,8 @@ namespace Galaxy.DealManager.ViewModel
         private string _instrumentId;
         private double _forwardLevel;
         private double _volLevel;
+        private string _broker = "";
+        private double _transacFee; 
 
         private const double _basisPoint = 0.001;
         private bool marketConnectionUp = false;
@@ -76,7 +78,7 @@ namespace Galaxy.DealManager.ViewModel
         
         public string[] Users { get; set; }
         public string[] Books { get; } = { "VS Equity", "VS FX" };
-        public string[] Brokers { get; } = { "Aurel BGC", "Platform" };
+        public string[] Brokers { get; } = { "ABN Amro", "Aurel BGC", "Platform" };
         public string[] Status { get; } = {"Front Booking", "Expired"};
         public ObservableCollection<DateTime> Maturitys { get; set; }
         public ObservableCollection<Deal> ObsDeals { get; set; }
@@ -109,6 +111,12 @@ namespace Galaxy.DealManager.ViewModel
             set { _instrumentId = value; UpdateInstruInfo(); OnPropertyChanged(nameof(InstrumentId)); }
         }
 
+        public string Broker
+        {
+            get { return _broker; }
+            set { _broker = value; UpdateFee(); OnPropertyChanged(nameof(Broker));}
+        }
+
         public string InstrumentDescription
         {
             get { return _instruDescription; }
@@ -124,7 +132,13 @@ namespace Galaxy.DealManager.ViewModel
         public double VolLevel
         {
             get { return _volLevel;}
-            set { _volLevel = value;OnPropertyChanged(nameof(VolLevel)); }
+            set { _volLevel = value; OnPropertyChanged(nameof(VolLevel)); }
+        }
+
+        public double TransacFee
+        {
+            get { return _transacFee; }
+            set { _transacFee = value; OnPropertyChanged(nameof(TransacFee)); }
         }
 
         #endregion
@@ -267,7 +281,10 @@ namespace Galaxy.DealManager.ViewModel
             Users = _dbManager.GetAllFrontUserIds();
             InstrumentId = "";
             InstrumentDescription = "";
-            SelectedDeal = new Deal { Status = "Front Booking", TradeDate = DateTime.Now};
+            ForwardLevel = 0;
+            VolLevel = 0;
+            SelectedDeal = new Deal { Status = "Front Booking", TradeDate = DateTime.Now, TraderId = "L.Kolodziejczak", BookId = "VS Equity"};
+            Broker = "Platform";
             var bookingAddForm = new AddFormWin {DataContext = this};
             bookingAddForm.Show();
             CloseAction = bookingAddForm.Close;
@@ -361,6 +378,28 @@ namespace Galaxy.DealManager.ViewModel
             }
         }
 
+        private void UpdateFee()
+        {
+            if (Broker == "Platform")
+            {
+                SelectedDeal.Broker = "Platform";
+                SelectedDeal.TransactionFee = 0.10;
+                TransacFee = 0.10;
+            }
+            else if (Broker == "Aurel BGC")
+            {
+                SelectedDeal.Broker = "Aurel BGC";
+                SelectedDeal.TransactionFee = 0.70;
+                TransacFee = 0.70;
+            }
+            else if (Broker == "ABN Amro")
+            {
+                SelectedDeal.Broker = "ABN Amro";
+                SelectedDeal.TransactionFee = 0.35;
+                TransacFee = 0.35;
+            }
+        }
+
         public void DisplayUpdateRmFormWin(object obj)
         {
             SelectedDeal = null;
@@ -370,6 +409,8 @@ namespace Galaxy.DealManager.ViewModel
                 return;
 
             InstrumentId = SelectedDeal.InstrumentId;
+            Broker = SelectedDeal.Broker;
+            TransacFee = SelectedDeal.TransactionFee.Value;
             InstrumentDescription = "";
 
             var query = from b in ObsPositions
@@ -689,7 +730,7 @@ namespace Galaxy.DealManager.ViewModel
                         pos.Delta = pos.Quantity * Option.Delta(pos.OptionType, pos.ForwardPrice, pos.Strike, pos.ModelVol, time);
                         pos.StickyDelta = Option.DegueulasseDelta(pos.OptionType, pos.ForwardPrice, pos.ModelVol,pos.Strike, time, pos.Quantity, param.A, param.B, param.Sigma, param.Rho, param.M);
                         pos.Gamma = (pos.Quantity * Math.Pow(pos.ForwardPrice/100, 2) * Option.Gamma(pos.ForwardPrice, pos.Strike, pos.ModelVol, time)) / _basisPoint;
-                        pos.Vega = pos.Quantity * _basisPoint * Option.Vega(pos.ForwardPrice, pos.Strike, pos.ModelVol, time);
+                        pos.Vega = pos.Quantity * _basisPoint * 10 * Option.Vega(pos.ForwardPrice, pos.Strike, pos.ModelVol, time);
                         pos.Theta = pos.Quantity * pos.LotSize * Option.NumTheta(pos.OptionType, pos.ForwardPrice, pos.Strike, pos.ModelVol, time);
                         pos.Rho = Option.Rho(pos.OptionType, pos.ForwardPrice, pos.Strike, pos.ModelVol, time);
                         pos.Vanna = Option.Vanna(pos.ForwardPrice, pos.Strike, pos.ModelVol, time);
