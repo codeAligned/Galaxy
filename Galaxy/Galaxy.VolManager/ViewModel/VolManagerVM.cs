@@ -248,9 +248,10 @@ namespace Galaxy.VolManager.ViewModel
             }
 
             _futureId = Option.GetNextFutureTtCode("FESX", SelectedMaturity);
+           // _futureId = "FESX092016";
             _forwardId = Option.BuildForwardId("STXE", SelectedMaturity);
 
-            LoadImpliedVol(true);
+             LoadImpliedVol(true);
             LoadModelVol(true);
 
             //Task taskA = new Task(() => LoadImpliedVol(true));

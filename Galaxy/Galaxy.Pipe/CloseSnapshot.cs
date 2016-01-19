@@ -38,6 +38,7 @@ namespace Pipe
             if (_dbManager.TestClosePrice(Option.PreviousWeekDay(DateTime.Today)))
             {
                 log.Error("Close price already inserted");
+                IsRunning = false;
                 return;
             }
 
@@ -68,6 +69,7 @@ namespace Pipe
 
             _dbManager.AddClosePrice(histoCollection);
             _marketFeed.Dispose();
+            IsRunning = false;
         }
 
 

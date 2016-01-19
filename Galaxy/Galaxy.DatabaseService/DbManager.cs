@@ -167,7 +167,7 @@ namespace Galaxy.DatabaseService
             using (var db = new DevDbContext())
             {
                 var query = from a in db.UserProfil
-                            where a.Job == "Trader" || a.Job == "Developer"
+                            where a.Job == "Trader"
                             select a.UserId;
 
                 return query.ToArray();

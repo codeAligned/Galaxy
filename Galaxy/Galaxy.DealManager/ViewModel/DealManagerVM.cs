@@ -52,10 +52,14 @@ namespace Galaxy.DealManager.ViewModel
         private double _forwardLevel;
         private double _volLevel;
         private string _broker = "";
-        private double _transacFee; 
+        private double _transacFee;
+        private double _clearingFee;
+        private int _quantity;
+        private readonly double _abnFee = 0.35;
 
         private const double _basisPoint = 0.001;
         private bool marketConnectionUp = false;
+        private bool databaseDataReady = false;
         private readonly Dictionary<string, Instrument> _instruInfoDico;
 
         #endregion
@@ -78,7 +82,7 @@ namespace Galaxy.DealManager.ViewModel
         
         public string[] Users { get; set; }
         public string[] Books { get; } = { "VS Equity", "VS FX" };
-        public string[] Brokers { get; } = { "ABN Amro", "Aurel BGC", "Platform" };
+        public string[] Brokers { get; } = {"Aurel BGC", "Platform" };
         public string[] Status { get; } = {"Front Booking", "Expired"};
         public ObservableCollection<DateTime> Maturitys { get; set; }
         public ObservableCollection<Deal> ObsDeals { get; set; }
@@ -141,6 +145,18 @@ namespace Galaxy.DealManager.ViewModel
             set { _transacFee = value; OnPropertyChanged(nameof(TransacFee)); }
         }
 
+        public double ClearingFee
+        {
+            get { return _clearingFee; }
+            set { _clearingFee = value; OnPropertyChanged(nameof(ClearingFee)); }
+        }
+
+        public int Quantity
+        {
+            get { return _quantity; }
+            set { _quantity = value; UpdateFee(); OnPropertyChanged(nameof(Quantity));}
+        }
+
         #endregion
         
         public DealManagerVM(IMarketFeed marketFeed, IDbManager dbManager)
@@ -201,6 +217,7 @@ namespace Galaxy.DealManager.ViewModel
             LoadCurrentDeals();
             LoadVolParams();
             LoadInstrumentsInfo();
+            Users = _dbManager.GetAllFrontUserIds();
         }
 
         private void ConnectionStatusHandler(IMarketFeed sender, string connectionState)
@@ -208,7 +225,11 @@ namespace Galaxy.DealManager.ViewModel
             if (connectionState == "Connection_Succeed")
             {
                 marketConnectionUp = true;
-                SuscribeToInstrumentPrices();
+                
+                if (databaseDataReady && marketConnectionUp)
+                {
+                    SuscribeToInstrumentPrices();
+                }
             }
             else if (connectionState == "Connection_Down")
             {
@@ -278,7 +299,6 @@ namespace Galaxy.DealManager.ViewModel
         {
             FilterInstrumentList();
 
-            Users = _dbManager.GetAllFrontUserIds();
             InstrumentId = "";
             InstrumentDescription = "";
             ForwardLevel = 0;
@@ -327,7 +347,6 @@ namespace Galaxy.DealManager.ViewModel
                 InstrumentNames.Add(instru);
             }
 
-            Users = _dbManager.GetAllFrontUserIds();
             SelectedDeal = new Deal { Status = "Front Booking", TradeDate = DateTime.Now, Comment = "Settlement Deal"};
             var settleDealWin = new CloseDealWin { DataContext = this };
             settleDealWin.Show();
@@ -339,10 +358,15 @@ namespace Galaxy.DealManager.ViewModel
             Instrument instru;
             if (!string.IsNullOrEmpty(InstrumentId) && _instruInfoDico.TryGetValue(InstrumentId, out instru))
             {
-                SelectedDeal.InstrumentId = InstrumentId;
                 InstrumentDescription = instru.FullName;
 
                 Instrument currentInstru = _instruInfoDico[SelectedDeal.InstrumentId];
+
+                if (currentInstru.Product.ProductType == "FUTURE")
+                {
+                    return;
+                }
+
                 double fwdPrice = 0;
                 if (_instrumentPriceSafeDico.ContainsKey(currentInstru.RefForwardId))
                 {
@@ -382,22 +406,13 @@ namespace Galaxy.DealManager.ViewModel
         {
             if (Broker == "Platform")
             {
-                SelectedDeal.Broker = "Platform";
-                SelectedDeal.TransactionFee = 0.10;
-                TransacFee = 0.10;
+                TransacFee = 0.10 * Math.Abs(Quantity);
             }
             else if (Broker == "Aurel BGC")
             {
-                SelectedDeal.Broker = "Aurel BGC";
-                SelectedDeal.TransactionFee = 0.70;
-                TransacFee = 0.70;
+                TransacFee = 0.70 * Math.Abs(Quantity);
             }
-            else if (Broker == "ABN Amro")
-            {
-                SelectedDeal.Broker = "ABN Amro";
-                SelectedDeal.TransactionFee = 0.35;
-                TransacFee = 0.35;
-            }
+            ClearingFee =  Math.Abs(_quantity) * _abnFee;
         }
 
         public void DisplayUpdateRmFormWin(object obj)
@@ -410,7 +425,18 @@ namespace Galaxy.DealManager.ViewModel
 
             InstrumentId = SelectedDeal.InstrumentId;
             Broker = SelectedDeal.Broker;
-            TransacFee = SelectedDeal.TransactionFee.Value;
+            Quantity = SelectedDeal.Quantity;
+            
+
+            if(SelectedDeal.TransactionFee != null)
+            {
+                TransacFee = SelectedDeal.TransactionFee.Value;
+            }
+
+            if (SelectedDeal.ClearingFee != null)
+            {
+                ClearingFee = SelectedDeal.ClearingFee.Value;
+            }
             InstrumentDescription = "";
 
             var query = from b in ObsPositions
@@ -454,6 +480,12 @@ namespace Galaxy.DealManager.ViewModel
 
         public void InsertDealIntoDb(object obj)
         {
+            SelectedDeal.InstrumentId = InstrumentId;
+            SelectedDeal.Quantity = Quantity;
+            SelectedDeal.ClearingFee = ClearingFee;
+            SelectedDeal.TransactionFee = TransacFee;
+            SelectedDeal.Broker = Broker;
+
             if (!CheckDealData())
             {
                 return;
@@ -469,7 +501,7 @@ namespace Galaxy.DealManager.ViewModel
 
         private bool CheckDealData()
         {
-            if (string.IsNullOrEmpty(SelectedDeal.InstrumentId) || !_instruInfoDico.ContainsKey(SelectedDeal.InstrumentId))
+            if ((SelectedDeal.Comment != "Settlement Deal" && SelectedDeal.Status != "Expired") && (string.IsNullOrEmpty(SelectedDeal.InstrumentId) || !_instruInfoDico.ContainsKey(SelectedDeal.InstrumentId)))
             {
                 MessageBox.Show("Invalid Instrument");
                 return false;
@@ -509,6 +541,11 @@ namespace Galaxy.DealManager.ViewModel
 
         public void UpdateDeal(object obj)
         {
+            SelectedDeal.Quantity = Quantity;
+            SelectedDeal.ClearingFee = ClearingFee;
+            SelectedDeal.TransactionFee = TransacFee;
+            SelectedDeal.Broker = Broker;
+
             if (!CheckDealData())
             {
                 return;
@@ -575,6 +612,13 @@ namespace Galaxy.DealManager.ViewModel
             {
                 _instruInfoDico.Add(instru.Id,instru);
             }
+            databaseDataReady = true;
+
+            if (databaseDataReady && marketConnectionUp)
+            {
+                SuscribeToInstrumentPrices();
+            }
+
         }
 
         private void LoadExpiredDeals()

@@ -43,7 +43,7 @@
                 </DockPanel>
                         <DockPanel>
                     <Label Content="Quantity :"  Width="80"/>
-                    <dxe:TextEdit Margin="3"  NullText="Quantity" Text="{Binding SelectedDeal.Quantity}"/>
+                    <dxe:TextEdit Margin="3"  NullText="Quantity" Text="{Binding Quantity}"/>
                 </DockPanel>
 
                 <DockPanel>
@@ -85,7 +85,7 @@
                 </DockPanel>
                 <DockPanel>
                     <Label Content="Clearing Fees :"  Width="88"/>
-                    <dxe:TextEdit Margin="5" NullText="Clearing Fee"  Text="{Binding SelectedDeal.ClearingFee}"/>
+                    <dxe:TextEdit Margin="5" NullText="Clearing Fee"  Text="{Binding ClearingFee}"/>
                 </DockPanel>
                 <DockPanel>
                     <Label Content="Counterparty :"  Width="88"/>

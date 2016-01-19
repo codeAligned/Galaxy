@@ -47,6 +47,7 @@ namespace Pipe
             {
                 Console.WriteLine("Enable to access to database. Check VPN connection");
                 Console.ReadLine();
+                IsRunning = false;
                 return;
             }
 
@@ -97,6 +98,7 @@ namespace Pipe
             }
 
             _marketFeed.Dispose();
+            IsRunning = false;
         }
 
         private Dictionary<string, VolParam> LoadVolParams()

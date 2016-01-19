@@ -11,13 +11,14 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using DevExpress.Xpf.Ribbon;
 
 namespace Galaxy.DealManager.View
 {
     /// <summary>
     /// Interaction logic for CloseDealWin.xaml
     /// </summary>
-    public partial class CloseDealWin : Window
+    public partial class CloseDealWin : DXRibbonWindow
     {
         public CloseDealWin()
         {
