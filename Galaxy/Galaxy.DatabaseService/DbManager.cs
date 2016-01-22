@@ -53,8 +53,9 @@ namespace Galaxy.DatabaseService
 
             using (var db = new DevDbContext())
             {
-                var query = from b in db.Deal
+                IQueryable<Deal> query = from b in db.Deal
                             where b.Status != "Deleted" && b.Status != "Expired"
+                            orderby b.TradeDate
                             select b;
 
                 query = query.Include(i => i.Instrument);
@@ -75,8 +76,9 @@ namespace Galaxy.DatabaseService
 
             using (var db = new DevDbContext())
             {
-                var query = from b in db.Deal
+                IQueryable<Deal> query = from b in db.Deal
                             where b.Status == "Expired"
+                            orderby b.TradeDate
                             select b;
 
                 query = query.Include(i => i.Instrument);
