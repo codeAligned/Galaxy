@@ -69,7 +69,7 @@ namespace Pipe
 
             _dbManager.AddClosePrice(histoCollection);
             _marketFeed.Dispose();
-            IsRunning = false;
+
         }
 
 

@@ -30,6 +30,8 @@ namespace Galaxy.PricingService
         protected double _speed;
 
         protected double _realisedPnl;
+        protected double _ytdRealisedPnl;
+ 
 
         public string InstruRic { get; }
         public string InstruDescription { get; }
@@ -72,6 +74,7 @@ namespace Galaxy.PricingService
         public double UnrealisedPnl => MtmPrice != 0 ? Round(Quantity * LotSize * (MtmPrice - AvgPrice), 2) : Round(Quantity * LotSize * (FairPrice - AvgPrice), 2);
         public string ObsLatentPnl => UnrealisedPnl.ToString("N2");
         public string ObsRealisedPnl => RealisedPnl.ToString("N2");
+        public string ObsYtdRealisedPnl => YtdRealisedPnl.ToString("N2");
         public double FairUnrealisedPnl => FairPrice != 0 ? Round(Quantity * LotSize * (FairPrice - AvgPrice), 2) : 0;
         public double Expiry => Max((MaturityDate - DateTime.Today).TotalDays, 0);
         public string VolParamsId => ProductName + "_" + MaturityDate.ToString("MMyyyy");
@@ -146,6 +149,12 @@ namespace Galaxy.PricingService
         {
             get { return _realisedPnl; }
             set { _realisedPnl = value; }
+        }
+
+        public virtual double YtdRealisedPnl
+        {
+            get { return _ytdRealisedPnl;}
+            set { _ytdRealisedPnl = value; }
         }
 
         public virtual double Rho

@@ -6,13 +6,14 @@ namespace Galaxy.PricingService
         protected double _cash;
         protected string _book;
         protected double _realisedPnl;
+        protected double _ytdRealisedPnl;
         protected double _unrealisedPnl;
         protected double _fairUnrealisedPnl;
         protected double _delta;
+        protected double _stickyDelta;
         protected double _gamma;
         protected double _vega;
         protected double _theta;
-
 
         public virtual double Cash
         {
@@ -32,6 +33,12 @@ namespace Galaxy.PricingService
             set { _realisedPnl = value; }
         }
 
+        public virtual double YtdRealisedPnl
+        {
+            get { return _ytdRealisedPnl; }
+            set { _ytdRealisedPnl = value; }
+        }
+
         public virtual double UnrealisedPnl
         {
             get { return _unrealisedPnl; }
@@ -48,6 +55,12 @@ namespace Galaxy.PricingService
         {
             get { return _delta; }
             set { _delta = value; }
+        }
+
+        public virtual double StickyDelta
+        {
+            get { return _stickyDelta; }
+            set { _stickyDelta = value; }
         }
 
         public virtual double Gamma
@@ -69,13 +82,16 @@ namespace Galaxy.PricingService
         }
 
         public double TheoricalPnl => RealisedPnl + UnrealisedPnl;
+        public double YearToDatePnl => YtdRealisedPnl + UnrealisedPnl;
 
         public string ObsCash => Cash.ToString("N2");
         public string ObsRealisedPnl => RealisedPnl.ToString("N2");
         public string ObsLatentPnl => UnrealisedPnl.ToString("N2");
         public string ObsFairLatentPnl => FairUnrealisedPnl.ToString("N2");
         public string ObsTheoPnl => TheoricalPnl.ToString("N2");
+        public string ObsYtdPnl => YearToDatePnl.ToString("N2");
         public string ObsBookDelta => Delta.ToString("N2");
+        public string ObsBookStickyDelta => StickyDelta.ToString("N2");
         public string ObsBookGamma => Gamma.ToString("N2");
         public string ObsBookVega => Vega.ToString("N2");
         public string ObsBookTheta => Theta.ToString("N2");
@@ -84,6 +100,7 @@ namespace Galaxy.PricingService
         {
             Book = pos.Book;
             RealisedPnl = pos.RealisedPnl;
+            YtdRealisedPnl = pos.YtdRealisedPnl;
             UnrealisedPnl = pos.UnrealisedPnl;
             FairUnrealisedPnl = pos.FairUnrealisedPnl;
         }

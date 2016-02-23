@@ -618,7 +618,6 @@ namespace Galaxy.DealManager.ViewModel
             {
                 SuscribeToInstrumentPrices();
             }
-
         }
 
         private void LoadExpiredDeals()
@@ -717,11 +716,6 @@ namespace Galaxy.DealManager.ViewModel
                 {
                     pos.MtmPrice = instruPrice;
                 }
-                else
-                {
-                    //_marketFeed.SuscribeToInstrumentPrice(pos.TtInstruId, pos.InstruType, pos.ProductName, pos.Market, "Mid");
-                    //_instrumentPriceSafeDico.TryAdd(pos.TtInstruId, 0);
-                }
 
                 if (pos.InstruType == "FUTURE")
                 {
@@ -738,20 +732,6 @@ namespace Galaxy.DealManager.ViewModel
                     {
                         UpdateForwardPrices(pos.ForwardId, pos.FutureId);
                         pos.ForwardPrice = _instrumentPriceSafeDico[pos.ForwardId];
-                    }
-                    else
-                    {
-                        //check if instrument is expired and if Forward as been created correctly
-                        //if (pos.MaturityDate >= DateTime.Today)
-                        //{
-                        //    DateTime previousDay = Option.PreviousWeekDay(DateTime.Today);
-                        //    double futureClose = _dbManager.GetSpotClose(previousDay, pos.FutureId);
-                        //    double forwardClose = Option.GetForwardClose(pos.ForwardId, pos.MaturityDate, futureClose);
-                        //    double forwardBaseOffset = forwardClose - futureClose;
-                        //    _fwdBaseOffsetDico.Add(pos.ForwardId, forwardBaseOffset);
-                        //    _instrumentPriceSafeDico.TryAdd(pos.ForwardId, 0);
-                        //}
-                        continue;
                     }
 
                     //retreive vol param
@@ -797,12 +777,7 @@ namespace Galaxy.DealManager.ViewModel
             string targetOptionTtCode = Option.GetOptionTtCode(pos.ProductName, optionType, pos.MaturityDate, pos.Strike);
             // get or suscribe option price
             double targetOptionPrice;
-            if (!_instrumentPriceSafeDico.TryGetValue(targetOptionTtCode, out targetOptionPrice))
-            {
-                //_marketFeed.SuscribeToInstrumentPrice(targetOptionTtCode, pos.InstruType, pos.ProductName, pos.Market, "Mid");
-                //_instrumentPriceSafeDico.TryAdd(targetOptionTtCode, 0);
-            }
-
+            _instrumentPriceSafeDico.TryGetValue(targetOptionTtCode, out targetOptionPrice);
             return targetOptionPrice;
         }
 
@@ -829,12 +804,8 @@ namespace Galaxy.DealManager.ViewModel
                 ObsBookPosition pos;
                 if (!_bookPositionDico.TryGetValue(instruPos.Book, out pos))
                 {
-                    //var newPos = new ObsBookPosition(instruPos);
-                    //_bookPositionDico.Add(instruPos.Book, newPos);
-                    //ObsBookPosition.Add(newPos);
                     return;
                 }
-
                 Pnl.ComputeBookRisk(pos, instruPos);
             }
         }
@@ -864,16 +835,6 @@ namespace Galaxy.DealManager.ViewModel
                 {
                     _instrumentPriceSafeDico[forwardId] = spotPrice + baseofset;
                 }
-            }
-            else
-            {
-                //Instrument future = _dbManager.GetFuture(futureId);
-                //var instruType = future.Product.ProductType;
-                //var productName = future.Product.Id;
-                //var market = future.Product.Market;
-                //var ttCode = future.TtCode;
-                //_marketFeed.SuscribeToInstrumentPrice(ttCode, instruType, productName, market, "Mid");
-                //_instrumentPriceSafeDico.TryAdd(ttCode, 0);
             }
         }
 

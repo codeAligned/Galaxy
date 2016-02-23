@@ -138,6 +138,7 @@ namespace Galaxy.DealManager.Model
         public void ResetData()
         {
             RealisedPnl = 0;
+            YtdRealisedPnl = 0;
             AvgPrice = 0;
             Quantity = 0;
         }

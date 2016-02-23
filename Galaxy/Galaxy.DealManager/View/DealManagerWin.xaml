@@ -44,7 +44,9 @@
                             <dxg:GridColumn Header="Unrealised P&amp;l" Width="110" Binding="{Binding ObsLatentPnl}"/>
                             <dxg:GridColumn Header="Fair Unrealised P&amp;l" Width="110" Binding="{Binding ObsFairLatentPnl}"/>
                             <dxg:GridColumn Header="Unrlzd+Rlzd P&amp;l" Width="110" Binding="{Binding ObsTheoPnl}"/>
+                            <dxg:GridColumn Header="Ytd P&amp;l" Width="110" Binding="{Binding ObsYtdPnl}"/>
                             <dxg:GridColumn Header="Cash" Width="80" Binding="{Binding ObsCash}"/>
+                            <dxg:GridColumn Header="S.Delta" Width="80" Binding="{Binding ObsBookStickyDelta}"/>
                             <dxg:GridColumn Header="Delta" Width="80" Binding="{Binding ObsBookDelta}"/>
                             <dxg:GridColumn Header="Gamma" Width="80" Binding="{Binding ObsBookGamma}"/>
                             <dxg:GridColumn Header="Vega" Width="80" Binding="{Binding ObsBookVega}"/>

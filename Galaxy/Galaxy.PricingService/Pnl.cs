@@ -21,32 +21,75 @@ namespace Galaxy.PricingService
                 //Close all the long position by short newDeal
                 if (Math.Abs(newDeal.Quantity) == Math.Abs(pos.Quantity) && newDeal.Quantity < pos.Quantity)
                 {
-                    pos.RealisedPnl += Math.Abs(newDeal.Quantity) * (newDeal.ExecPrice - pos.AvgPrice) * pos.LotSize;
+                    double pnl = Math.Abs(newDeal.Quantity) * (newDeal.ExecPrice - pos.AvgPrice) * pos.LotSize;
+                    pos.RealisedPnl += pnl;
+                    if (newDeal.TradeDate.Year == DateTime.Today.Year)
+                    {
+                        pos.YtdRealisedPnl += pnl;
+                    }
                     pos.AvgPrice = 0;
                     pos.Quantity = 0;
                 }
                 // Close all the short position by long newDeal
                 else if (Math.Abs(newDeal.Quantity) == Math.Abs(pos.Quantity) && newDeal.Quantity > pos.Quantity)
                 {
-                    pos.RealisedPnl += Math.Abs(newDeal.Quantity) * (pos.AvgPrice - newDeal.ExecPrice) * pos.LotSize;
+                    double pnl = Math.Abs(newDeal.Quantity) * (pos.AvgPrice - newDeal.ExecPrice) * pos.LotSize;
+                    pos.RealisedPnl += pnl;
+
+                    if (newDeal.TradeDate.Year == DateTime.Today.Year)
+                    {
+                        pos.YtdRealisedPnl += pnl;
+                    }
                     pos.AvgPrice = 0;
                     pos.Quantity = 0;
                 }
+
                 //Close part of the long position by short newDeal
                 else if (Math.Abs(newDeal.Quantity) < Math.Abs(pos.Quantity) && newDeal.Quantity < pos.Quantity)
                 {
-                    pos.RealisedPnl += Math.Abs(newDeal.Quantity) * (newDeal.ExecPrice - pos.AvgPrice) * pos.LotSize;
+                    double pnl = Math.Abs(newDeal.Quantity) * (newDeal.ExecPrice - pos.AvgPrice) * pos.LotSize;
+                    pos.RealisedPnl += pnl;
+        
+                    if (newDeal.TradeDate.Year == DateTime.Today.Year)
+                    {
+                        pos.YtdRealisedPnl += pnl;
+                    }
                     pos.Quantity = pos.Quantity + newDeal.Quantity;
                 }
                 //Close part of the short position by long newDeal
                 else if (Math.Abs(newDeal.Quantity) < Math.Abs(pos.Quantity) && newDeal.Quantity > pos.Quantity)
                 {
-                    pos.RealisedPnl += Math.Abs(newDeal.Quantity) * (pos.AvgPrice - newDeal.ExecPrice) * pos.LotSize;
+                    double pnl = Math.Abs(newDeal.Quantity) * (pos.AvgPrice - newDeal.ExecPrice) * pos.LotSize;
+                    pos.RealisedPnl += pnl;
+
+                    if (newDeal.TradeDate.Year == DateTime.Today.Year)
+                    {
+                        pos.YtdRealisedPnl += pnl;
+                    }
                     pos.Quantity = pos.Quantity + newDeal.Quantity;
                 }
-                else
+                else if (Math.Abs(newDeal.Quantity) > Math.Abs(pos.Quantity) && newDeal.Quantity < pos.Quantity)
                 {
-                    pos.RealisedPnl += Math.Abs(pos.Quantity) * (newDeal.ExecPrice - pos.AvgPrice) * pos.LotSize;
+                    double pnl = Math.Abs(pos.Quantity) * (newDeal.ExecPrice - pos.AvgPrice) * pos.LotSize;
+                    pos.RealisedPnl += pnl;
+
+                    if (newDeal.TradeDate.Year == DateTime.Today.Year)
+                    {
+                        pos.YtdRealisedPnl += pnl;
+                    }
+                    pos.Quantity = pos.Quantity + newDeal.Quantity;
+                    pos.AvgPrice = newDeal.ExecPrice;
+                }
+                //Close part of the short position by long newDeal
+                else if (Math.Abs(newDeal.Quantity) > Math.Abs(pos.Quantity) && newDeal.Quantity > pos.Quantity)
+                {
+                    double pnl = Math.Abs(pos.Quantity) * (pos.AvgPrice - newDeal.ExecPrice) * pos.LotSize;
+                    pos.RealisedPnl += pnl;
+
+                    if (newDeal.TradeDate.Year == DateTime.Today.Year)
+                    {
+                        pos.YtdRealisedPnl += pnl;
+                    }
                     pos.Quantity = pos.Quantity + newDeal.Quantity;
                     pos.AvgPrice = newDeal.ExecPrice;
                 }
@@ -56,6 +99,7 @@ namespace Galaxy.PricingService
         public static void ComputeBookPosition(BookPosition pos, InstrumentPosition instruPos)
         {
             pos.RealisedPnl += instruPos.RealisedPnl;
+            pos.YtdRealisedPnl += instruPos.YtdRealisedPnl;
             pos.UnrealisedPnl += instruPos.UnrealisedPnl;
             pos.FairUnrealisedPnl += instruPos.FairUnrealisedPnl;
             if (instruPos.InstruType == "OPTION")
@@ -71,6 +115,7 @@ namespace Galaxy.PricingService
         public static void ComputeBookRisk(BookPosition pos, InstrumentPosition instruPos)
         {
             pos.Delta += instruPos.Delta;
+            pos.StickyDelta += instruPos.StickyDelta;
             pos.Gamma += instruPos.Gamma;
             pos.Vega += instruPos.Vega;
             pos.Theta += instruPos.Theta;

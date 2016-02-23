@@ -41,6 +41,12 @@ namespace Galaxy.DealManager.Model
             set { _delta = value; OnPropertyChanged(nameof(_delta)); }
         }
 
+        public override double StickyDelta
+        {
+            get { return _stickyDelta; }
+            set { _stickyDelta = value; OnPropertyChanged(nameof(_stickyDelta)); }
+        }
+
         public override double Gamma
         {
             get { return _gamma; }
@@ -65,6 +71,7 @@ namespace Galaxy.DealManager.Model
         {
             UnrealisedPnl = 0;
             RealisedPnl = 0;
+            YtdRealisedPnl = 0;
             Cash = 0;
             FairUnrealisedPnl = 0;
         }
@@ -72,6 +79,7 @@ namespace Galaxy.DealManager.Model
         public void ResetGreeks()
         {
             Delta = 0;
+            StickyDelta = 0;
             Gamma = 0;
             Vega = 0;
             Theta = 0;

@@ -98,7 +98,6 @@ namespace Pipe
             }
 
             _marketFeed.Dispose();
-            IsRunning = false;
         }
 
         private Dictionary<string, VolParam> LoadVolParams()
